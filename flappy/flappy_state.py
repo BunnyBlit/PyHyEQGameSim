@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import List
 from hybrid_models.list_serializable import ListSerializable
 
+
 @dataclass
 class FlappyState(ListSerializable):
     x_pos: float

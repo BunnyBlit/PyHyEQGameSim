@@ -6,17 +6,19 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 from .list_serializable import ListSerializable
 
-T = TypeVar('T', bound=ListSerializable)
+T = TypeVar("T", bound=ListSerializable)
+
 
 @dataclass
 class HybridPoint(Generic[T]):
-    """ A single point in a hybrid solution! A full hybrid solution
+    """A single point in a hybrid solution! A full hybrid solution
         is a sequence of some kind of these
     Attributes:
         time (float): time when this state happened
         state (T): state at this time and number of jumps
         jumps (int): number of jumps that happened before this state
     """
+
     time: float
     state: T
     jumps: int

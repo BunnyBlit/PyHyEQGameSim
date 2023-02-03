@@ -5,6 +5,7 @@ import random
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
+
 @dataclass
 class FlappyLevel:
     """A level for Flappy
@@ -15,27 +16,28 @@ class FlappyLevel:
         lower_bound (float): the lowest part of the level our bird can go
         upper_bound (float): the highest part of a level our bird can go
     """
+
     obstacles: List[Tuple[Tuple[float, float], Tuple[float, float]]]
     upper_bound: float
     lower_bound: float
-    pipe_width: Optional[float]=None
-    gap: Optional[float]=None
-    seed: Optional[int]=None
+    pipe_width: Optional[float] = None
+    gap: Optional[float] = None
+    seed: Optional[int] = None
 
     @classmethod
-    def simple_procedural_gen(cls, seed:Optional[int]):
-        """ run a simple procedure for spacing out pipe gaps
-            ala normal flappers
+    def simple_procedural_gen(cls, seed: Optional[int]):
+        """run a simple procedure for spacing out pipe gaps
+        ala normal flappers
         """
-        lower_bound:float = 0.0
-        upper_bound:float = 5.0
-        x_start:float = 1.0
-        x_period:float = 2.0
-        heights:List[float] = [2, 1.5, 1]
+        lower_bound: float = 0.0
+        upper_bound: float = 5.0
+        x_start: float = 1.0
+        x_period: float = 2.0
+        heights: List[float] = [2, 1.5, 1]
 
-        pipe_width:float = 0.7
-        gap:float = 1.0
-        num_gaps:int = 6 # total pipes placed is 2x this number
+        pipe_width: float = 0.7
+        gap: float = 1.0
+        num_gaps: int = 6  # total pipes placed is 2x this number
 
         pipes = []
         for i in range(num_gaps):
@@ -55,11 +57,7 @@ class FlappyLevel:
 
     @classmethod
     def scripted_gen_level(cls):
-        """Generate a level! it's by hand for now because that's Easier
-        """ 
+        """Generate a level! it's by hand for now because that's Easier"""
         # lower left corner, upper right corner
-        scripted_obstacles = [
-            ((2.0, 0.0), (2.5, 2.0)),
-            ((1.25, 4.0), (1.75, 5.0))
-        ]
+        scripted_obstacles = [((2.0, 0.0), (2.5, 2.0)), ((1.25, 4.0), (1.75, 5.0))]
         return FlappyLevel(scripted_obstacles, 5.0, 0.0)
