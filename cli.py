@@ -9,7 +9,7 @@ from plot_utils import plot_position, plot_solutions_combined
 def single_run(args) -> None:
     """Perform a single run of Flappy
     Args:
-         args (Any):
+         args (Namespace): command line arguments from argparse
     """
     sample_rate = args.sample_rate
     samples = args.samples
@@ -25,9 +25,9 @@ def single_run(args) -> None:
     plot_position(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 
-def bounds_run(args):
-    """Handle argument parsing and do a combined run
-    NOTE: see the big note on single runs, this will change in the future
+def find_reachability_bounds(args) -> None:
+    """Do a reachability analysis of Flappy, looking for the upper and
+    lower bound.
     """
     max_t = args.max_time
     num_samples = args.num_samples
@@ -36,7 +36,7 @@ def bounds_run(args):
 
     random.seed(seed)
     # handle invalid args
-    if max_t == None and num_samples == None:
+    if max_t is None and num_samples is None:
         raise ValueError("Need to specify a max_time or num_samples!")
 
     # derive max time
@@ -50,7 +50,10 @@ def bounds_run(args):
     )
 
 
-def build_cli_parser():
+def build_cli_parser() -> argparse.ArgumentParser:
+    """Return a command line argument parser for Flappy analysis.
+    The README has more information.
+    """
     parser = argparse.ArgumentParser(
         prog="FlappySim", description="A Hybrid Automata Simulation of Flappy Bird"
     )
@@ -69,7 +72,7 @@ def build_cli_parser():
         default=random.randint(0, 10000),
     )
     subparser = parser.add_subparsers(
-        description="Subparsers for handling single and grouped runs"
+        description="Subparsers for handling analysis tasks"
     )
     single_parser = subparser.add_parser("single", help="For doing single runs")
     bounds_parser = subparser.add_parser(
@@ -90,7 +93,7 @@ def build_cli_parser():
     # single run stuff
     single_parser.set_defaults(func=single_run)
     # bounds run stuff
-    bounds_parser.set_defaults(func=bounds_run)
+    bounds_parser.set_defaults(func=find_reachability_bounds)
 
     return parser
 
@@ -106,7 +109,8 @@ def _add_common_arguments_to_group(group):
         "-m",
         "--max_time",
         type=float,
-        help="Say exactly how long we want the sim to run, samples will be evenly spaced from 0 to max_time",
+        help="How long we want the sim to run, \
+            samples will be evenly spaced from 0 to max_time",
     )
 
 

@@ -1,6 +1,6 @@
-""" Abstract / Default class for model params / state. We need to be able to convert
-    model state to a list so we can have it be consumed by most ODE solvers, this provides
-    a simple interface to do that with
+"""Abstract class for model params / state. We need to be able to
+   convert model state to a list so we can have it be consumed by most ODE
+   solvers, this provides a simple interface to do that with
 """
 from typing import List
 
