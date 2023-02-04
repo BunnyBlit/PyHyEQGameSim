@@ -15,7 +15,7 @@ class FlappyModel(HybridModel[FlappyState, FlappyParams]):
        as well as a way to get input. For flappy, input is a single button 0 (off) or 1 (on)
     Attributes:
         start_state (FlappyState): Flappy's start state
-        system_params (FlappyParams): constants for simlating flappy
+        system_params (FlappyParams): constants for simulating flappy
         level (FlappyLevel): Level to simulate for Flappy
         t_max (float): max time to simulate out to
         j_max (int): max number of jumps to simulate out to
