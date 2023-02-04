@@ -1,46 +1,27 @@
 """Core class for solving a hybrid systems equation!
     FIXME: move notes from notebook to here
 """
-from typing import Callable, List, Generic, Sequence, Any
+from typing import Callable, List, Generic, Sequence
 import scipy.integrate as integrate
 
 from .hybrid_model import HybridModel
 from .hybrid_point import HybridPoint, T
 
-from pprint import pformat, pprint
-
 
 class HyEQSolver(Generic[T]):
     """A python implementation of a hybrid equation solver!
     Attributes:
-        flow_map (Callable): a function that returns the derivatives of the
-                             current state. Used as part of solving a simple
-                             ODE problem, and how we simulate the consequences
-                             of hitting buttons / the continuous part of game
-                             state
-        jump_map (Callable): a function that returns a new state given an old
-                             state. Used for modeling the instantaneous part
-                             of a how a game changes (responses to button
-                             presses, dying, etc)
-        flow_set (Callable): function that returns if we should be flowing or
-                             not (solving the continuous part of space)
-                             Returns a tuple: int for flowing or not (1 for
-                             flow, 0 for no flow) and a
-                             "stop right now boolean
-        jump_set (Callable): function that returns if we should jump right now
-                             or not. Returns a tuple: int for jumping
-                             (1 to jump, 0 to not jump) and a
-                             "stop right now" boolean
+        model (HybridModel): The Hybrid Model of the game that we're trying to solve for
         rule (int): when there is ambiguity, if the solver should prioritize
                     jumps or flows
         cur_state (HybridPoint[T]): current state, as an instantaneous point
                                     in a running solution
-        y (T): the current state
-        t (float): the current time
-        j (int): the current number of jumps we've taken so far
         stop (bool): "stop right now" signal
         sol (List[HybridPoint[T]]): The list of hybrid points that are part of
                                     this hybrid solution
+        max_step (float): the maximum step size of the underlying ODE solver
+        rtol (float): the relative tolerance of the underlying ODE solver
+        atol (float): the absolute tolerance of the underlying ODE solver
     """
 
     model: HybridModel
@@ -48,6 +29,9 @@ class HyEQSolver(Generic[T]):
     cur_state: HybridPoint[T]
     stop: bool
     sol: List[HybridPoint[T]]
+    max_step: float
+    rtol: float
+    atol: float
 
     def __init__(
         self,

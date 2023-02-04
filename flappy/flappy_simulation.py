@@ -1,5 +1,4 @@
-""" Utility functions for Doing A Big Math-- figuring out reachability,
-    etc. for one flappable bird
+""" Interfaces for doing reachability and feasibility analysis of flappy bird
 """
 import time
 from copy import deepcopy
@@ -15,10 +14,13 @@ from hybrid_models.hybrid_result import HybridResult
 
 
 class FlappySim:
-    """Set up a class to manage flappy simulation runs. Holds onto state, allowing us to chain
-    multiple simulation runs together.
-    NOTE: we could also do this with pure functions, and this may end up becoming a sort of
-          data class to tie input state over several sims together
+    """Class to manage simulation runs, and an interface to Do The Thing.
+    Attributes:
+       t_max (float): max time for a sim run. If we get to t_max, we're successful
+       step_time (float): how far apart each sample of the input signal is
+       start_state (FlappyState): starting state of flappy the bird
+       level (FlappyLevel): level to simulate on
+       seed (int): seed to use for level generation
     """
 
     t_max: float
@@ -30,7 +32,10 @@ class FlappySim:
 
     def __init__(self, t_max: float, step_time: float, seed: Optional[int] = None):
         """set up everything required for a sim run.
-        TODO: take a start state as input, probably
+        Args:
+            t_max (float): see class attribute of the same name
+            step_time (float): see class attribute of the same name
+            seed (Optional[int]): see class attribute of the same name
         """
         self.start_state = FlappyState(x_pos=0.1, y_pos=2.0, y_vel=0.1, pressed=0)
         self.system_params = FlappyParams(
@@ -42,10 +47,15 @@ class FlappySim:
         self.level = FlappyLevel.simple_procedural_gen(seed)
 
     def single_run(self, direct_sequence: List[int]) -> HybridResult:
-        """Perform a single run with the given parameters and the provided input list"""
+        """Perform a single run with the given parameters and the provided input samples
+        Args:
+            direct_sequence: the input samples to use for this run
+        Returns:
+            HybridResult: the result of this simulation
+        """
         input_sequence = time_sequence(direct_sequence, self.step_time)
         # deep copy here because the model can change the state, which can
-        # bubble back to the init object
+        # bubble back to the init parameters
         model = FlappyModel(
             start_state=deepcopy(self.start_state),
             system_params=self.system_params,
@@ -57,13 +67,19 @@ class FlappySim:
         solver = HyEQSolver(model)
         solution = solver.solve()
 
-        # FIXME: might want to add this explicitly to a solution,
+        # FIXME: might want to add this explicitly to the solver,
         #       but a solution is valid if the solver didn't hard stop
-        #       early
+        #       early (solver.stop)
         return HybridResult(not solver.stop, input_sequence, solution)
 
     def reachability_simulation(self) -> Tuple[List[HybridResult], List[HybridResult]]:
-        """Run a simulation for flappy reachability"""
+        """Do a reachability analysis of Flappy
+        Returns:
+            Tuple[
+                List[HybridResult]: all the runs to find the upper reachability bound
+                List[HybridResult]: all the runs to find the lower reachability bound
+            ]
+        """
         start = time.time()
         # upper bound calc
         upper_input_gen = btn_1_ordered_sequence_generator(
@@ -92,12 +108,10 @@ class FlappySim:
             pressed (all 0s). We can count upward (or downward) in binary to get an input order!
             Going from all 0's up gives us our lower bound, and going from all 1s down gives us our upper bound
         Args:
-            input_generator (Any): a way to sample for input
+            input_generator (Generator[InputSignal, Optional[List], None]): a generator that returns input in an
+               increasing or decreasing order. The generator can also skip input, based on how far we've gotten.
         Returns:
-            List of tuples: each element in the returned list has the following form:
-                bool- if this was a successful run (True) or if we needed to stop early (False)
-                List- input sequence
-                List- output model result
+            List[HybridResult]: all the runs it took to find the bound (or a massive list of failed runs if none could be found)
         """
         solutions: List[HybridResult] = []
         done = False

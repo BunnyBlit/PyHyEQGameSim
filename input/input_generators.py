@@ -16,6 +16,11 @@ def btn_1_ordered_sequence_generator(
         direction (str): order of the input
             asc -> all 0s to all 1s
             dsc -> all 1s to all 0s
+    Returns:
+        Generator[InputSignal, Optional[List], None]: returns a generator
+        that yields a new input signal. We move on to the next signal by
+        sending back how far the previous input got us, so the generator knows
+        how far to jump and ignore parts of the input signal that aren't relevant yet
     """
     # assume an equal distance, sample n+1 happens at t+step_time
     sample_times = []
@@ -92,30 +97,17 @@ def time_sequence(input_samples, step_time) -> InputSignal:
 
 def int_to_bin_list(num, width) -> List[int]:
     """Convert a number to a binary list representation of that number
-    num=4, width=4 -> 0, 1, 0, 0
-    num=4, width=2 -> 1, 0, 0
-    num=4, width=5 -> 0, 0, 1, 0, 0
-    num=3, width=4 -> 0, 0, 1, 1
-    etc.
+       num=4, width=4 -> 0, 1, 0, 0
+       num=4, width=2 -> 1, 0, 0
+       num=4, width=5 -> 0, 0, 1, 0, 0
+       num=3, width=4 -> 0, 0, 1, 1
+       etc.
+    Args:
+        num (int): integer number to convert
+        width (int): size of the eventual list
+    Returns:
+        List[int]: a list as described above
     """
     binary_string = bin(num)[2:]  # cut out the leading 0
     padded_bin_string = str(binary_string).zfill(width)
     return [int(digit) for digit in padded_bin_string]
-
-
-def jump_to(keep_digits, flip_digit, fill_digit, size) -> int:
-    """Given keep digits, find the right most relevant flip digit,
-    flip it, then right fill with fill digit is until we get size digits
-    convert back to an int
-    """
-    # find the flip idx given the flip digit
-    # FIXME: this makes a copy, but eeeeeh. Other options are worse.
-    flip_idx = len(keep_digits) - keep_digits[-1::-1].index(flip_digit) - 1
-    # flip it
-    keep_digits[flip_idx] = (-flip_digit) + 1
-    # concatenate down as str
-    keep_digits_as_str = "".join([str(d) for d in keep_digits])
-    # fill with the fill digit
-    skip_until = f"0b{keep_digits_as_str.ljust(size, str(fill_digit))}"
-    # convert back to int
-    return int(skip_until, 2)

@@ -23,11 +23,14 @@ class InputSignal(Iterable):
     _idx: int = 0  # so we can be an iterator
 
     def __iter__(self):
+        """ Iterator protocol initialization.
+        Start at -1 here to make __next__ have some nicer logic.
+        """
         self._idx = -1  # I know. it makes the next logic much cleaner
         return self
 
     def __next__(self):
-        """iterator pattern is time, sample"""
+        """Iterator for the next time, sample pair"""
         if self._idx < len(self.samples) - 1 and \
                 self._idx < len(self.times) - 1:
             self._idx += 1

@@ -10,11 +10,24 @@ from .flappy_level import FlappyLevel
 
 
 class FlappyModel(HybridModel[FlappyState, FlappyParams]):
-    """It's a hybrid model for flappy bird! Implements the 4 big functions for hybrid models,
-    as well as a way to get input. For flappy, input is a single button 0 (off) or 1 (on)
-    Flappy also takes an input sequence via an optional input_sequence parameter
+    """It's a hybrid model for flappy bird!
+       Implements the 4 big functions for hybrid models,
+       as well as a way to get input. For flappy, input is a single button 0 (off) or 1 (on)
+    Attributes:
+        start_state (FlappyState): Flappy's start state
+        system_params (FlappyParams): constants for simlating flappy
+        level (FlappyLevel): Level to simulate for Flappy
+        t_max (float): max time to simulate out to
+        j_max (int): max number of jumps to simulate out to
+        input_sequence (InputSignal): the input sequence to use for simulation
     """
 
+    start_state: FlappyState
+    system_params: FlappyParams
+    level: FlappyLevel
+    t_max: float
+    j_max: int
+    input_sequence: InputSignal
     def __init__(
         self,
         start_state: FlappyState,
@@ -25,7 +38,7 @@ class FlappyModel(HybridModel[FlappyState, FlappyParams]):
         input_sequence: InputSignal = InputSignal([], []),
     ):
         """Constructor"""
-        super().__init__()  # hybrid models don't define constructors... for now
+        super().__init__()
         self.input_sequence: InputSignal = input_sequence
         self.j_max = j_max
         self.t_max = t_max
@@ -35,10 +48,13 @@ class FlappyModel(HybridModel[FlappyState, FlappyParams]):
         self.level = level
 
     def get_input(self, time: float, jumps: int) -> int:
-        """get input for ye flappy bird. We expect all the input for this simulation run to be already
-        calculated by the time we get to this point
-        # FIXME: this still works on a precalculated input, which may not be right
-        This function returns an int because that's what our input is-- a 1 button on/off signal.
+        """ Sample the input signal for the value of input at the provided time, jumps
+           for flappy bird.
+        Args:
+           time (float): current sim time
+           jumps (int): current number of sim jumps
+        Returns:
+           int: value if the input signal is pressed or not
         """
         if not self.input_sequence:
             raise RuntimeError("Need to set an input sequence before getting input!")
@@ -52,8 +68,12 @@ class FlappyModel(HybridModel[FlappyState, FlappyParams]):
         return int(sample[1])
 
     def check_collisions(self, state: FlappyState) -> bool:
-        """Check to see if we're colliding with anything. For flappy, this should
-        stop everything.
+        """ Check to see if we're colliding with anything. For flappy, this should
+            stop the sim (we died).
+        Args:
+            state (FlappyState): current state to check for collisions
+        Returns:
+            bool: True = collision, False = no collision
         """
         # before we get into obstacles, do some simple "bird must be between these these two
         # heights" checks
@@ -81,10 +101,11 @@ class FlappyModel(HybridModel[FlappyState, FlappyParams]):
             hybrid_state: (HybridPoint[FlappyState]): flappy's current state, along with
                                                       the current time and number of jumps
         Returns:
-            FlappyState: dy/dt! The derivative of y w.r.t t given t and j and params!
+            FlappyState: d[state]/d[time]! The derivative of state w.r.t time given time, number of jumps and system params!
         """
         state = hybrid_state.state
-        # TODO: we probably want to not overwrite the state here
+        # NOTE: we currently overwrite the state and return the same state back
+        #       this works, even though it doesn't make any goddamn sense.
         if state.pressed == 0:  # falling
             state.x_pos = self.system_params.pressed_x_vel
             state.y_pos = state.y_vel
@@ -99,18 +120,18 @@ class FlappyModel(HybridModel[FlappyState, FlappyParams]):
             return state
 
     def jump(self, hybrid_state: HybridPoint[FlappyState]) -> FlappyState:
-        """Jump function! This should return a new y after a jump, given t and j and params.
+        """Jump function! This should return a new state after a jump,
+           given time and number of jumps and params.
         Args:
             hybrid_state: (HybridPoint[FlappyState]): flappy's current state, along with
                                                       the current time and number of jumps
         Returns:
-            FlappyState: new y after the jump!
+            FlappyState: new state after the jump!
         """
-        # sample input signal
-        # parameterized input signal w.r.t. time and jumps
         state = hybrid_state.state
         time = hybrid_state.time
         jumps = hybrid_state.jumps
+        # sample input signal
         new_pressed = self.get_input(time, jumps)
         state.pressed = new_pressed
         # jump according to the new input signal
