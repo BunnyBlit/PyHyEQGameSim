@@ -7,7 +7,7 @@ For simple action games! Hopefully! It's a big work in progress.
 This repository is a Python implementation of [Analyzing Action Games: A Hybrid Systems Approach](https://dl.acm.org/doi/pdf/10.1145/3337722.3337757). Currently the only game I have a model for is Flappy Bird, so I hope you're into a mid-aughts mobile game hit. I'm not 100% sure it's correct yet, some lower bounds still look pretty suspicious to me.
 
 To Do Some Stuff With Flappy, Use:
-```console
+```bash
 # download and install requirements
 # (matplotlib for graphs, scipy for ODE solving, tqdm isn't needed but helps my sanity with dev work)
 $ pip install -r requirements.txt
