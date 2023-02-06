@@ -194,8 +194,8 @@ def plot_solutions(solutions, dim_0, dim_1, ax: Axes):
         else:
             pass
             # add a little x
-            # ax.plot(plt_pair[0], plt_pair[1], '--', color='red', label="death")
-            # ax.plot([plt_pair[0][-1]], [plt_pair[1][-1]], "x", color='red')
+            ax.plot(plt_pair[0], plt_pair[1], '--', color='red', label="death")
+            ax.plot([plt_pair[0][-1]], [plt_pair[1][-1]], "x", color='red')
 
     handles, labels = ax.get_legend_handles_labels()
     handles_to_graph = []

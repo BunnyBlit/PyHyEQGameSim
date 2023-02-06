@@ -19,6 +19,6 @@ $ python3 cli.py --sample_rate 0.02 single --samples 0 0 0 1 1 1
 $ python3 cli.py --sample_rate 0.02 reachability --num_samples 20
 ```
 
-Some cases can run really slowly-- it can take up to 15 minutes to get 1 second of game play sometimes :c. 
+Some cases can run really slowly-- it can take up to 15 minutes to get 1 second of game play sometimes :c. The reachability graphs can get _real chonky_ because the currently plot both the good edge boundaries and all the failed runs.
 
 Blog Post Pending on What Is Going On Here and Why You Might Care
