@@ -3,10 +3,11 @@
 import argparse
 import random
 from flappy.flappy_simulation import FlappySim
-from plot_utils import plot_position, plot_solutions_combined
+from ball_bounce.ball_simulation import BallSim
+from plot_utils import plot_state_relation, plot_state_over_time, plot_solutions_combined
 
 
-def single_run(args) -> None:
+def single_flappy_run(args) -> None:
     """Perform a single run of Flappy
     Args:
          args (Namespace): command line arguments from argparse
@@ -22,10 +23,19 @@ def single_run(args) -> None:
 
     sim = FlappySim(max_t, sample_rate, seed)
     result = sim.single_run(samples)
-    plot_position(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
+    plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
+def single_ball_run(args) -> None:
+    """Perform a single run of a bouncing ball
+    Args:
+        args (Namespace): command line arguments from argparse for bouncing ball
+    """
+    max_t = args.max_time
+    sim = BallSim(max_t)
+    result = sim.single_run()
+    plot_state_over_time(result, ["Y Pos", "Y Vel"], "Ball Height")
 
-def find_reachability_bounds(args) -> None:
+def find_flappy_reachability_bounds(args) -> None:
     """Do a reachability analysis of Flappy, looking for the upper and
     lower bound.
     """
@@ -51,35 +61,34 @@ def find_reachability_bounds(args) -> None:
 
 
 def build_cli_parser() -> argparse.ArgumentParser:
-    """Return a command line argument parser for Flappy analysis.
-    The README has more information.
+    """Build out a complex tree of subparsers for handling various
+        analysis tasks for various models that we have in the repository
+        README either does or will have information!
     """
     parser = argparse.ArgumentParser(
         prog="FlappySim", description="A Hybrid Automata Simulation of Flappy Bird"
     )
-    parser.add_argument(
-        "-r",
-        "--sample_rate",
-        type=float,
-        help="How often the sim should sample input signal",
-        default=1 / 60,
+    model_parsers = parser.add_subparsers(
+        description="Subparsers for which model we're running on"
     )
-    parser.add_argument(
-        "-d",
-        "--seed",
-        type=int,
-        help="Level generation seed",
-        default=random.randint(0, 10000),
-    )
-    subparser = parser.add_subparsers(
+    # ball time
+    ball_parser = model_parsers.add_parser("ball", help="For simulating the simple Bouncing Ball example!")
+    ball_analysis_parsers = ball_parser.add_subparsers(
         description="Subparsers for handling analysis tasks"
     )
-    single_parser = subparser.add_parser("single", help="For doing single runs")
-    bounds_parser = subparser.add_parser(
-        "reachability", help="For finding reachability bounds"
-    )
+    single_ball_parser = ball_analysis_parsers.add_parser("single", help="For doing single runs")
+    _add_max_time_argument(single_ball_parser)
 
-    single_parser.add_argument(
+    # flappy time
+    flappy_parser = model_parsers.add_parser("flappy", help="For simulating Flappy Bird!")
+    flappy_analysis_parsers = flappy_parser.add_subparsers(
+        description="Subparsers for handling analysis tasks"
+    )
+    # single runs
+    single_flappy_parser = flappy_analysis_parsers.add_parser("single", help="For doing single runs")
+    _add_sample_rate(single_flappy_parser)
+    _add_seed(single_flappy_parser)
+    single_flappy_parser.add_argument(
         "-s",
         "--samples",
         type=int,
@@ -87,32 +96,73 @@ def build_cli_parser() -> argparse.ArgumentParser:
         help="Specify a list of sample values directly",
     )
 
-    bounds_number_of_samples_group = bounds_parser.add_mutually_exclusive_group()
-    _add_common_arguments_to_group(bounds_number_of_samples_group)
+    # reachability analysis
+    reachability_flappy_parser = flappy_analysis_parsers.add_parser(
+        "reachability", help="For finding reachability bounds"
+    )
+    _add_sample_rate(reachability_flappy_parser)
+    _add_seed(reachability_flappy_parser)
+    bounds_number_of_samples_group = reachability_flappy_parser.add_mutually_exclusive_group()
+    _add_max_time_argument(bounds_number_of_samples_group)
+    _add_num_samples_argument(bounds_number_of_samples_group)
 
-    # single run stuff
-    single_parser.set_defaults(func=single_run)
-    # bounds run stuff
-    bounds_parser.set_defaults(func=find_reachability_bounds)
+    # single run of bouncing ball
+    single_ball_parser.set_defaults(func=single_ball_run)
+    # single run flappy
+    single_flappy_parser.set_defaults(func=single_flappy_run)
+    # bounds run flappy
+    reachability_flappy_parser.set_defaults(func=find_flappy_reachability_bounds)
 
     return parser
 
 
-def _add_common_arguments_to_group(group):
-    group.add_argument(
+def _add_max_time_argument(parse_obj):
+    """ Add a max time object to a parsing object that implements the
+        add_argument function
+    """
+    parse_obj.add_argument(
+        "-m",
+        "--max_time",
+        type=float,
+        help="How long we want the sim to run, \
+            if this model is sampling input, \
+            samples will be evenly spaced from 0 to max_time",
+    )
+
+def _add_num_samples_argument(parse_obj):
+    """ Add the number of samples argument to a parsing object that
+        implements the add_argument function
+    """
+    parse_obj.add_argument(
         "-n",
         "--num_samples",
         type=int,
         help="Say exactly how many samples we want for this run",
     )
-    group.add_argument(
-        "-m",
-        "--max_time",
+
+def _add_sample_rate(parse_obj):
+    """ Add the sample rate argument to a parsing object that
+        implements the add_argument function
+    """
+    parse_obj.add_argument(
+        "-r",
+        "--sample_rate",
         type=float,
-        help="How long we want the sim to run, \
-            samples will be evenly spaced from 0 to max_time",
+        help="How often the sim should sample input signal",
+        default=1 / 60,
     )
 
+def _add_seed(parse_obj):
+    """ Add the seed argument to a parsing object that implements
+        the add_arguments function
+    """
+    parse_obj.add_argument(
+        "-d",
+        "--seed",
+        type=int,
+        help="Level generation seed",
+        default=random.randint(0, 10000),
+    )
 
 if "__main__" == __name__:
     # parse arguments

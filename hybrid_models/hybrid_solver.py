@@ -3,10 +3,8 @@
 """
 from typing import Callable, List, Generic, Sequence
 import scipy.integrate as integrate
-
 from .hybrid_model import HybridModel
 from .hybrid_point import HybridPoint, T
-
 
 class HyEQSolver(Generic[T]):
     """A python implementation of a hybrid equation solver!
@@ -192,5 +190,4 @@ class HyEQSolver(Generic[T]):
             else:
                 break
 
-        # wrap this up nicely
         return self.sol

@@ -15,7 +15,7 @@ def spaced_samples(lower, upper, num_samples):
     ]
 
 
-def plot_2d_arc(solution, state_labels, chart_label):
+def plot_state_over_time(solution, state_labels, chart_label):
     """Solution is three lists:
     t: times
     y: state at times
@@ -23,7 +23,9 @@ def plot_2d_arc(solution, state_labels, chart_label):
     """
     fig = plt.figure()
     fig.suptitle(chart_label)
-    t, y, j = solution
+    t = [point.time for point in solution.sim_result]
+    y = [point.state.to_list() for point in solution.sim_result]
+    j = [point.jumps for point in solution.sim_result] 
     state_dim = len(y[0])
     axs = []
     color_map = mpl.colormaps["plasma"]  # type: ignore this works, actually
@@ -50,7 +52,6 @@ def plot_2d_arc(solution, state_labels, chart_label):
             plt_slices[j_i][0].append(t_i)
             plt_slices[j_i][1].append(y_i[idx])
 
-        # pprint(plt_slices)
         # map each j value to something that'll fit in our color map
         plt_color_indices = spaced_samples(
             0, len(color_map.colors), j[-1] + 1
@@ -58,11 +59,11 @@ def plot_2d_arc(solution, state_labels, chart_label):
         for j_i, slice in plt_slices.items():
             ax.plot(slice[0], slice[1], color=color_map.colors[plt_color_indices[j_i]])
 
-    plt.show(block=True)
+    plt.show()
     # fig.show()
 
 
-def plot_position(solution, level, dim_0, dim_1, label_0, label_1, chart_label):
+def plot_state_relation(solution, level, dim_0, dim_1, label_0, label_1, chart_label):
     """Plot any two parts of the solution against each other"""
     fig = plt.figure()
     fig.suptitle(chart_label)
@@ -72,7 +73,6 @@ def plot_position(solution, level, dim_0, dim_1, label_0, label_1, chart_label):
     t = [point.time for point in output]
     y = [point.state.to_list() for point in output]
     j = [point.jumps for point in output]
-
     color_map = mpl.colormaps["plasma"]  # type: ignore
 
     # set up subgraphs
@@ -97,9 +97,11 @@ def plot_position(solution, level, dim_0, dim_1, label_0, label_1, chart_label):
 
     # now adjust-- we need to put the last element in plt_slices[N] on the end of plt_slices[N-1]
     # so we can draw complete lines
+    # TODO: fun fact: this breaks for high state numbers
     for slice_idx in range(max(plt_slices.keys()), min(plt_slices.keys()), -1):
         plt_slices[slice_idx - 1][0].append(plt_slices[slice_idx][0][0])
         plt_slices[slice_idx - 1][1].append(plt_slices[slice_idx][1][0])
+
     # map each j value to something that'll fit in our color map
     plt_color_indices = spaced_samples(
         0, len(color_map.colors), j[-1] + 1
@@ -108,11 +110,12 @@ def plot_position(solution, level, dim_0, dim_1, label_0, label_1, chart_label):
         ax.plot(slice[0], slice[1], color=color_map.colors[plt_color_indices[j_i]])
 
     # plot obstacles
-    for obstacle in level.obstacles:
-        width = obstacle[1][0] - obstacle[0][0]
-        height = obstacle[1][1] - obstacle[0][1]
+    if level:
+        for obstacle in level.obstacles:
+            width = obstacle[1][0] - obstacle[0][0]
+            height = obstacle[1][1] - obstacle[0][1]
 
-        ax.add_patch(Rectangle(obstacle[0], width, height))
+            ax.add_patch(Rectangle(obstacle[0], width, height))
 
     # fig.show()
     plt.show()
