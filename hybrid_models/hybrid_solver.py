@@ -5,7 +5,9 @@ from typing import Callable, List, Generic, Sequence
 import scipy.integrate as integrate
 from .hybrid_model import HybridModel
 from .hybrid_point import HybridPoint, T
+from copy import deepcopy
 
+from pprint import pprint
 class HyEQSolver(Generic[T]):
     """A python implementation of a hybrid equation solver!
     Attributes:
@@ -124,7 +126,6 @@ class HyEQSolver(Generic[T]):
         """Perform a model jump! Call jump with the appropriate arguments"""
         self.cur_state.state = self.model.jump(self.cur_state)
         self.cur_state.jumps += 1
-        self.sol.append(self.cur_state)
 
     def solve(self) -> List[HybridPoint[T]]:
         # if we're in a start state that jumps and we're prioritizing jumps,
@@ -167,7 +168,11 @@ class HyEQSolver(Generic[T]):
                     new_point = HybridPoint(time, new_state, self.cur_state.jumps)
                     self.sol.append(new_point)
 
-                self.cur_state = self.sol[-1]
+                # FIXME: there's probably a smart way to do this,
+                #        but the current state may get mutated by jumps
+                #        and this lets us hold onto both sides of the instantaneous change
+                #        (self.sol[-1] is pre change and self.cur_state will become post change)
+                self.cur_state = deepcopy(self.sol[-1])
 
             # check stop signal
             if self.stop:

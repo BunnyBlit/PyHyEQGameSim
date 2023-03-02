@@ -21,17 +21,17 @@ def plot_state_over_time(solution, state_labels, chart_label):
     y: state at times
     j: number of jumps at the following time
     """
-    fig = plt.figure()
+    fig = plt.figure(layout='constrained')
     fig.suptitle(chart_label)
     t = [point.time for point in solution.sim_result]
     y = [point.state.to_list() for point in solution.sim_result]
-    j = [point.jumps for point in solution.sim_result] 
+    j = [point.jumps for point in solution.sim_result]
     state_dim = len(y[0])
     axs = []
     color_map = mpl.colormaps["plasma"]  # type: ignore this works, actually
     # set up subgraphs
     for dim, label in zip(range(state_dim), state_labels):
-        axs.append(fig.add_subplot(state_dim + 1, 1, dim + 1))
+        axs.append(fig.add_subplot(state_dim, 1, dim + 1))
         axs_current = axs[-1]
         axs_current.set_xlabel("Time")
         axs_current.set_ylabel(label)
@@ -54,17 +54,20 @@ def plot_state_over_time(solution, state_labels, chart_label):
 
         # now adjust-- we need to put the last element in plt_slices[N] on the end of plt_slices[N-1]
         # so we can draw complete lines
-        # TODO: fun fact: this breaks for high state numbers
-        for slice_idx in range(max(plt_slices.keys()), min(plt_slices.keys()), -1):
-            plt_slices[slice_idx - 1][0].append(plt_slices[slice_idx][0][0])
-            plt_slices[slice_idx - 1][1].append(plt_slices[slice_idx][1][0])
+        #for slice_idx in range(max(plt_slices.keys()), min(plt_slices.keys()), -1):
+        #    plt_slices[slice_idx - 1][0].append(plt_slices[slice_idx][0][0])
+        #    plt_slices[slice_idx - 1][1].append(plt_slices[slice_idx][1][0])
     
         # map each j value to something that'll fit in our color map
         plt_color_indices = spaced_samples(
             0, len(color_map.colors), j[-1] + 1
         )  # j is 0 indexed
         for j_i, slice in plt_slices.items():
-            ax.plot(slice[0], slice[1], color=color_map.colors[plt_color_indices[j_i]])
+            ax.plot(slice[0], slice[1], color=color_map.colors[plt_color_indices[j_i]], label=f"Jump {j_i + 1}")
+        
+        # just for one graph. trying to figure out legend placement is ruining me
+        if(idx == 0):
+            ax.legend()
         
     plt.show()
     # fig.show()
@@ -72,7 +75,7 @@ def plot_state_over_time(solution, state_labels, chart_label):
 
 def plot_state_relation(solution, level, dim_0, dim_1, label_0, label_1, chart_label):
     """Plot any two parts of the solution against each other"""
-    fig = plt.figure()
+    fig = plt.figure(layout='constrained')
     fig.suptitle(chart_label)
     input = solution.input_sequence
 
@@ -133,7 +136,7 @@ def plot_all_positions(solutions, level, dim_0, dim_1, label_0, label_1, chart_l
     we lose color info on jumps here, but that's ok because
     we're just looking for the end position of each run
     """
-    fig = plt.figure()
+    fig = plt.figure(layout='constrained')
     fig.suptitle(chart_label)
     # color_map = mpl.colormaps['plasma']  # type: ignore
 
@@ -232,7 +235,7 @@ def plot_solutions_combined(
     solution_list, level, dim_0, dim_1, label_0, label_1, chart_label
 ):
     """Combine a bunch of solutions together into one unified plot"""
-    fig = plt.figure()
+    fig = plt.figure(layout='constrained')
     fig.suptitle(chart_label)
     # color_map = mpl.colormaps['plasma']  # type: ignore
 

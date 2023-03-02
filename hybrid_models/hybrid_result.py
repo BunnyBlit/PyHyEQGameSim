@@ -21,3 +21,15 @@ class HybridResult:
         InputSignal
     ]
     sim_result: List[HybridPoint]
+
+    def __str__(self) -> str:
+        """Human readable representation of this solution"""
+        str_rep:str = ""
+        for hybrid_point in self.sim_result:
+            state = hybrid_point.state
+            str_state = ", ".join([f"{elem:0.004f}" for elem in state.to_list()])
+            str_rep += f"{hybrid_point.time:0.004f}\t{str_state}\t{hybrid_point.jumps}\n"
+
+        return str_rep
+        
+

@@ -35,6 +35,8 @@ def single_ball_run(args) -> None:
     max_j = args.max_jumps
     sim = BallSim(max_t,  max_j)
     result = sim.single_run()
+    print("BIG OLD DATA DUMP INC")
+    print(result)
     plot_state_over_time(result, ["Height", "Vertical Velocity"], "Ball Height")
 
 def find_flappy_reachability_bounds(args) -> None:

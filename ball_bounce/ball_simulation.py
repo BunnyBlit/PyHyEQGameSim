@@ -1,13 +1,12 @@
 """ Interface for doing a single shot run of a bouncing ball simulation
 """
 from copy import deepcopy
-from typing import Optional
 from .ball_state import BallState
 from .ball_params import BallParams
 from .ball_model import BallModel
 from hybrid_models.hybrid_solver import HyEQSolver
 from hybrid_models.hybrid_result import HybridResult
-
+from pprint import pprint, pformat
 
 class BallSim:
     """Class to manage simulation runs, and an interface to Do The Thing.
@@ -51,11 +50,10 @@ class BallSim:
             start_state=deepcopy(self.start_state),
             system_params=self.system_params,
             t_max=self.t_max,
-            j_max=self.j_max,  # FIXME: do this smarter, it's just set to a big number so sim won't terminate early
+            j_max=self.j_max,
         )
         solver = HyEQSolver(model)
         solution = solver.solve()
-
         # FIXME: might want to add this explicitly to the solver,
         #       but a solution is valid if the solver didn't hard stop
         #       early (solver.stop)
