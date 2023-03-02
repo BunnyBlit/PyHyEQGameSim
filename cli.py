@@ -15,13 +15,14 @@ def single_flappy_run(args) -> None:
     sample_rate = args.sample_rate
     samples = args.samples
     seed = args.seed
+    max_j = args.max_jumps
 
     random.seed(seed)
     # derive the end time from the provided samples + sampling rate
     num_samples = len(samples)
     max_t = num_samples * sample_rate
 
-    sim = FlappySim(max_t, sample_rate, seed)
+    sim = FlappySim(max_t,  max_j, sample_rate, seed)
     result = sim.single_run(samples)
     plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
@@ -31,15 +32,17 @@ def single_ball_run(args) -> None:
         args (Namespace): command line arguments from argparse for bouncing ball
     """
     max_t = args.max_time
-    sim = BallSim(max_t)
+    max_j = args.max_jumps
+    sim = BallSim(max_t,  max_j)
     result = sim.single_run()
-    plot_state_over_time(result, ["Y Pos", "Y Vel"], "Ball Height")
+    plot_state_over_time(result, ["Height", "Vertical Velocity"], "Ball Height")
 
 def find_flappy_reachability_bounds(args) -> None:
     """Do a reachability analysis of Flappy, looking for the upper and
     lower bound.
     """
     max_t = args.max_time
+    max_j = args.max_jumps
     num_samples = args.num_samples
     sample_rate = args.sample_rate
     seed = args.seed
@@ -53,7 +56,7 @@ def find_flappy_reachability_bounds(args) -> None:
     if num_samples:
         max_t = num_samples * sample_rate
 
-    sim = FlappySim(max_t, sample_rate, seed)
+    sim = FlappySim(max_t, max_j, sample_rate, seed)
     results = sim.reachability_simulation()
     plot_solutions_combined(
         results, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position"
@@ -78,6 +81,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     )
     single_ball_parser = ball_analysis_parsers.add_parser("single", help="For doing single runs")
     _add_max_time_argument(single_ball_parser)
+    _add_max_jumps_argument(single_ball_parser)
 
     # flappy time
     flappy_parser = model_parsers.add_parser("flappy", help="For simulating Flappy Bird!")
@@ -88,6 +92,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     single_flappy_parser = flappy_analysis_parsers.add_parser("single", help="For doing single runs")
     _add_sample_rate(single_flappy_parser)
     _add_seed(single_flappy_parser)
+    _add_max_jumps_argument(single_flappy_parser)
     single_flappy_parser.add_argument(
         "-s",
         "--samples",
@@ -102,6 +107,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
     )
     _add_sample_rate(reachability_flappy_parser)
     _add_seed(reachability_flappy_parser)
+    _add_max_jumps_argument(reachability_flappy_parser)
+
     bounds_number_of_samples_group = reachability_flappy_parser.add_mutually_exclusive_group()
     _add_max_time_argument(bounds_number_of_samples_group)
     _add_num_samples_argument(bounds_number_of_samples_group)
@@ -127,6 +134,18 @@ def _add_max_time_argument(parse_obj):
         help="How long we want the sim to run, \
             if this model is sampling input, \
             samples will be evenly spaced from 0 to max_time",
+    )
+
+def _add_max_jumps_argument(parse_obj):
+    """ Add a max jumps argument to a parsing object that implements the
+        add_argument function
+    """
+    parse_obj.add_argument(
+        "-j",
+        "--max_jumps",
+        type=int,
+        help="How many jumps we want this sim to go through",
+        default=15
     )
 
 def _add_num_samples_argument(parse_obj):

@@ -17,6 +17,7 @@ class FlappySim:
     """Class to manage simulation runs, and an interface to Do The Thing.
     Attributes:
        t_max (float): max time for a sim run. If we get to t_max, we're successful
+       j_max (int): max number of jumps for the sim to run. If we get to j_max, we're successful
        step_time (float): how far apart each sample of the input signal is
        start_state (FlappyState): starting state of flappy the bird
        level (FlappyLevel): level to simulate on
@@ -24,16 +25,18 @@ class FlappySim:
     """
 
     t_max: float
+    j_max: int
     step_time: float
     start_state: FlappyState
     system_params: FlappyParams
     level: FlappyLevel
     seed: Optional[int]
 
-    def __init__(self, t_max: float, step_time: float, seed: Optional[int] = None):
+    def __init__(self, t_max: float, j_max: int, step_time: float, seed: Optional[int] = None):
         """set up everything required for a sim run.
         Args:
             t_max (float): see class attribute of the same name
+            j_max (int): see class attribute of hte same name
             step_time (float): see class attribute of the same name
             seed (Optional[int]): see class attribute of the same name
         """
@@ -42,6 +45,7 @@ class FlappySim:
             pressed_x_vel=2.0, pressed_y_vel=2.0, gamma=9.81
         )
         self.t_max = t_max
+        self.j_max = j_max
         self.step_time = step_time
         self.seed = seed
         self.level = FlappyLevel.simple_procedural_gen(seed)
@@ -60,7 +64,7 @@ class FlappySim:
             start_state=deepcopy(self.start_state),
             system_params=self.system_params,
             t_max=self.t_max,
-            j_max=17,  # FIXME: do this smarter, it's just set to a big number so sim won't terminate early
+            j_max=self.j_max,
             level=self.level,
         )
         model.input_sequence = input_sequence

@@ -52,13 +52,20 @@ def plot_state_over_time(solution, state_labels, chart_label):
             plt_slices[j_i][0].append(t_i)
             plt_slices[j_i][1].append(y_i[idx])
 
+        # now adjust-- we need to put the last element in plt_slices[N] on the end of plt_slices[N-1]
+        # so we can draw complete lines
+        # TODO: fun fact: this breaks for high state numbers
+        for slice_idx in range(max(plt_slices.keys()), min(plt_slices.keys()), -1):
+            plt_slices[slice_idx - 1][0].append(plt_slices[slice_idx][0][0])
+            plt_slices[slice_idx - 1][1].append(plt_slices[slice_idx][1][0])
+    
         # map each j value to something that'll fit in our color map
         plt_color_indices = spaced_samples(
             0, len(color_map.colors), j[-1] + 1
         )  # j is 0 indexed
         for j_i, slice in plt_slices.items():
             ax.plot(slice[0], slice[1], color=color_map.colors[plt_color_indices[j_i]])
-
+        
     plt.show()
     # fig.show()
 
@@ -116,7 +123,7 @@ def plot_state_relation(solution, level, dim_0, dim_1, label_0, label_1, chart_l
             height = obstacle[1][1] - obstacle[0][1]
 
             ax.add_patch(Rectangle(obstacle[0], width, height))
-
+    
     # fig.show()
     plt.show()
 
@@ -168,7 +175,7 @@ def plot_all_positions(solutions, level, dim_0, dim_1, label_0, label_1, chart_l
         height = obstacle[1][1] - obstacle[0][1]
 
         ax.add_patch(Rectangle(obstacle[0], width, height))
-
+    
     plt.show()
 
 
@@ -244,4 +251,5 @@ def plot_solutions_combined(
         height = obstacle[1][1] - obstacle[0][1]
 
         ax.add_patch(Rectangle(obstacle[0], width, height))
+    
     plt.show()
