@@ -92,18 +92,18 @@ class HyEQSolver(Generic[T]):
 
         functs = [inside_flow, inside_jump, outside_flow]
         if rule == 1:
-            functs[0].terminal = 1
+            functs[0].terminal = True
             functs[0].direction = -1
-            functs[1].terminal = 1
+            functs[1].terminal = True
             functs[1].direction = -1
-            functs[2].terminal = 1
+            functs[2].terminal = True
             functs[2].direction = 1
         elif rule == 2:
-            functs[0].terminal = 1
+            functs[0].terminal = True
             functs[0].direction = -1
-            functs[1].terminal = 0
+            functs[1].terminal = False
             functs[1].direction = -1
-            functs[2].terminal = 1
+            functs[2].terminal = True
             functs[2].direction = 1
 
         return functs
@@ -184,9 +184,10 @@ class HyEQSolver(Generic[T]):
                 # do as many jumps as possible
                 if self.rule == 1:
                     while self.cur_state.jumps < self.model.j_max:
+                        self.jump()
                         should_jump, self.stop = self.model.jump_check(self.cur_state)
                         if should_jump == 1 and not self.stop:
-                            self.jump()
+                            continue
                         else:
                             break
                 # only do 1 jump

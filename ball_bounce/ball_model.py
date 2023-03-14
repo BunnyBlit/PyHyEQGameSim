@@ -62,7 +62,6 @@ class BallModel(HybridModel[BallState, BallParams]):
             FlappyState: new state after the jump!
         """
         state = hybrid_state.state
-        state.y_pos = 0
         state.y_vel = -self.system_params.restitution_coef * state.y_vel
         return state
 
@@ -77,11 +76,7 @@ class BallModel(HybridModel[BallState, BallParams]):
                 bool: stop signal, if this is true we need to completely stop the model
                       false means keep going
         """
-        state = hybrid_state.state
-        if state.y_pos >= 0:
-            return (1, False)
-        else:
-            return (0, False)
+        return (1, False)
 
     def jump_check(self, hybrid_state: HybridPoint[BallState]) -> Tuple[int, bool]:
         """Jump check! This should return 1 if we can jump, 0 otherwise
@@ -95,7 +90,7 @@ class BallModel(HybridModel[BallState, BallParams]):
                       false means keep going
         """
         state = hybrid_state.state
-        if state.y_pos < 0:
+        if state.y_pos <= 0 and state.y_vel < 0:
             return (1, False)
         else:
             return (0, False)
