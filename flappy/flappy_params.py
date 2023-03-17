@@ -1,12 +1,9 @@
 """Model class for some flappy parameters
 """
 from dataclasses import dataclass
-from typing import List
-from hybrid_models.list_serializable import ListSerializable
-
 
 @dataclass
-class FlappyParams(ListSerializable):
+class FlappyParams():
     """Constant parameters for flappy. These values never change throughout
        a simulation run.
     Attributes:
@@ -18,9 +15,3 @@ class FlappyParams(ListSerializable):
     pressed_x_vel: float
     pressed_y_vel: float
     gamma: float
-
-    def to_list(self) -> List:
-        """Convert the params to a list, the order is
-           [pressed_x_vel, pressed_y_vel, gamma]
-        """
-        return [self.pressed_x_vel, self.pressed_y_vel, self.gamma]
