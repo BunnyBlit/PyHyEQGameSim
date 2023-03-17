@@ -10,7 +10,6 @@ G = TypeVar("G")
 # Add another parameter for input sequences: models are parameterized by
 #   T - the system's state information
 #   G - global parameters to the system
-#   I - how input comes into the system: one button? several buttons? joysticks?
 class HybridModel(Generic[T, G]):
     """Hybrid models need to define a bunch of things! There are 4 primary functions that
         a hybrid model must define:
