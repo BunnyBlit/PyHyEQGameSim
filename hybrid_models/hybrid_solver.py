@@ -120,7 +120,7 @@ class HyEQSolver(Generic[T]):
             t, self.model.state_factory(*x), self.cur_state.jumps
         )
         result = self.model.flow(hybrid_point_from_solver)
-        return result.to_list()
+        return result
 
     def jump(self) -> None:
         """Perform a model jump! Call jump with the appropriate arguments"""
@@ -152,7 +152,7 @@ class HyEQSolver(Generic[T]):
                 ode_sol = integrate.solve_ivp(
                     self._flow_wrapper,
                     (self.cur_state.time, self.model.t_max),
-                    self.cur_state.state.to_list(),
+                    self.cur_state.state,
                     events=self.zero_events,
                     max_step=self.max_step,
                     atol=self.atol,

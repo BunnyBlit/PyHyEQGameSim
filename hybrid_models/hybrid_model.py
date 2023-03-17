@@ -3,11 +3,9 @@
 """
 from abc import abstractmethod
 from typing import Any, Tuple, Generic, Type, TypeVar
-from .list_serializable import ListSerializable
 from .hybrid_point import HybridPoint, T
 
-G = TypeVar("G", bound=ListSerializable)
-
+G = TypeVar("G")
 
 # Add another parameter for input sequences: models are parameterized by
 #   T - the system's state information

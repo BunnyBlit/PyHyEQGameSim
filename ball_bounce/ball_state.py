@@ -2,21 +2,41 @@
 """
 from dataclasses import dataclass
 from typing import List
-from hybrid_models.list_serializable import ListSerializable
+from collections.abc import Sequence
 
-@dataclass
-class BallState(ListSerializable):
+@dataclass(init=False)
+class BallState(Sequence):
     """State of a bouncing ball! We only care about one dimension,
         we're not worried about left/right position for a demo
-    Args:
+    Properties:
         y_pos (float): y position
         y_vel (float): y velocity
     """
-    y_pos: float
-    y_vel: float
+    _data: List[float]
 
-    def to_list(self) -> List:
-        """Convert state to a list for use with the solver.
-           The order is [y_pos, y_vel, y_accel]
-        """
-        return [self.y_pos, self.y_vel]
+    def __init__(self, y_pos:float, y_vel:float):
+        self._data = [0.0, 0.0] # initialize the array
+        self.y_pos=y_pos
+        self.y_vel=y_vel
+
+    @property
+    def y_pos(self) -> float:
+        return self._data[0]
+
+    @y_pos.setter
+    def y_pos(self, value:float):
+        self._data[0] = value
+
+    @property
+    def y_vel(self) -> float:
+        return self._data[1]
+
+    @y_vel.setter
+    def y_vel(self, value:float):
+        self._data[1] = value
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __getitem__(self, key:int) -> float:
+        return self._data[key]

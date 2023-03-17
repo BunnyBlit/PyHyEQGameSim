@@ -24,8 +24,9 @@ def plot_state_over_time(solution, state_labels, chart_label):
     fig = plt.figure(layout='constrained')
     fig.suptitle(chart_label)
     t = [point.time for point in solution.sim_result]
-    y = [point.state.to_list() for point in solution.sim_result]
+    y = [point.state for point in solution.sim_result]
     j = [point.jumps for point in solution.sim_result]
+
     state_dim = len(y[0])
     axs = []
     color_map = mpl.colormaps["plasma"]  # type: ignore this works, actually
@@ -75,7 +76,7 @@ def plot_state_relation(solution, level, dim_0, dim_1, label_0, label_1, chart_l
 
     output = solution.sim_result
     t = [point.time for point in output]
-    y = [point.state.to_list() for point in output]
+    y = [point.state for point in output]
     j = [point.jumps for point in output]
     color_map = mpl.colormaps["plasma"]  # type: ignore
 
@@ -142,7 +143,7 @@ def plot_all_positions(solutions, level, dim_0, dim_1, label_0, label_1, chart_l
     for solution in solutions:
         good, output, input = solution
         t = [point.time for point in output]
-        y = [point.state.to_list() for point in output]
+        y = [point.state for point in output]
         j = [point.jumps for point in output]
         input_signal = [sample[1] for sample in input]
         # we want to plot y[dim_0] against y[dim_1]
@@ -187,7 +188,7 @@ def plot_solutions(solutions, dim_0, dim_1, ax: Axes):
         input = solution.input_sequence
         output = solution.sim_result
         t = [point.time for point in output]
-        y = [point.state.to_list() for point in output]
+        y = [point.state for point in output]
         j = [point.jumps for point in output]
         input_signal = [sample[1] for sample in input]
         # we want to plot y[dim_0] against y[dim_1]

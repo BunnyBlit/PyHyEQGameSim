@@ -4,9 +4,9 @@
 
 from dataclasses import dataclass
 from typing import Generic, TypeVar
-from .list_serializable import ListSerializable
+from collections.abc import Sequence
 
-T = TypeVar("T", bound=ListSerializable)
+T = TypeVar("T", bound=Sequence)
 
 
 @dataclass
@@ -18,7 +18,6 @@ class HybridPoint(Generic[T]):
         state (T): state at this time and number of jumps
         jumps (int): number of jumps that happened before this state
     """
-
     time: float
     state: T
     jumps: int
