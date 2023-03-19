@@ -6,8 +6,12 @@ import scipy.integrate as integrate
 from .hybrid_model import HybridModel
 from .hybrid_point import HybridPoint, T
 from copy import deepcopy
-
 from pprint import pprint
+
+from logging import Logger
+
+logger = Logger(__file__)
+
 class HyEQSolver(Generic[T]):
     """A python implementation of a hybrid equation solver!
     Attributes:
@@ -68,7 +72,7 @@ class HyEQSolver(Generic[T]):
         # get the first element (the int) part of the returns on our check
         # functions
         def inside_flow(t, state_values):
-            model_state = self.model.state_factory(*state_values)
+            model_state = self.model.state_factory(state_values)
             hybrid_point_from_solver = HybridPoint(
                 t,
                 model_state,
@@ -77,7 +81,7 @@ class HyEQSolver(Generic[T]):
             return 2 * self.model.flow_check(hybrid_point_from_solver)[0]
 
         def inside_jump(t, state_values):
-            model_state = self.model.state_factory(*state_values)
+            model_state = self.model.state_factory(state_values)
             hybrid_point_from_solver = HybridPoint(t, model_state, self.cur_state.jumps)
             return (
                 2
@@ -86,7 +90,7 @@ class HyEQSolver(Generic[T]):
             )
 
         def outside_flow(t, state_values):
-            model_state = self.model.state_factory(*state_values)
+            model_state = self.model.state_factory(state_values)
             hybrid_point_from_solver = HybridPoint(t, model_state, self.cur_state.jumps)
             return 2 * (-self.model.flow_check(hybrid_point_from_solver)[0])
 
@@ -113,14 +117,11 @@ class HyEQSolver(Generic[T]):
            values. As we're using somewhat more complicated types, I
            wrap that call so we can go to and from our types
         """
-        # FIXME: I think I'm eating a lot of object creation time when I don't
-        #       need to be here. Flowing isn't, really, state, and models
-        #       currently return it as one.
         hybrid_point_from_solver = HybridPoint(
-            t, self.model.state_factory(*x), self.cur_state.jumps
+            t, self.model.state_factory(x), self.cur_state.jumps
         )
         result = self.model.flow(hybrid_point_from_solver)
-        return result
+        return result._data # avoid an unwrapping operation here-- the solver just wants the ndarray
 
     def jump(self) -> None:
         """Perform a model jump! Call jump with the appropriate arguments"""
@@ -131,8 +132,6 @@ class HyEQSolver(Generic[T]):
         # if we're in a start state that jumps and we're prioritizing jumps,
         # jump immediately
         if self.rule == 1:
-            # FIXME: This can probably get cleaned up-- something like
-            # a jmp_priority function or something.
             while self.cur_state.jumps < self.model.j_max:
                 should_jump, self.stop = self.model.jump_check(self.cur_state)
                 if should_jump == 1 and not self.stop:
@@ -162,9 +161,10 @@ class HyEQSolver(Generic[T]):
                 # a little error handling, as a treat
                 # also fast fail, something's weird and up
                 if ode_sol.status == -1:
+                    logger.error(f"Solver Failed! Message: {ode_sol.message}")
                     return self.sol
                 for time, state_values in zip(ode_sol.t, ode_sol.y.T):
-                    new_state = self.model.state_factory(*state_values)
+                    new_state = self.model.state_factory(state_values)
                     new_point = HybridPoint(time, new_state, self.cur_state.jumps)
                     self.sol.append(new_point)
 

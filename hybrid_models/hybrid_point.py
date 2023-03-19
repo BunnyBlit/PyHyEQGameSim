@@ -5,8 +5,10 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 from collections.abc import Sequence
+from .ndarray_dataclass import NDArrayBacked
 
-T = TypeVar("T", bound=Sequence)
+
+T = TypeVar("T", bound=NDArrayBacked)
 
 
 @dataclass

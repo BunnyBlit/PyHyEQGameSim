@@ -40,7 +40,7 @@ class FlappySim:
             step_time (float): see class attribute of the same name
             seed (Optional[int]): see class attribute of the same name
         """
-        self.start_state = FlappyState(x_pos=0.1, y_pos=2.0, y_vel=0.1, pressed=0)
+        self.start_state = FlappyState.from_properties(x_pos=0.1, y_pos=2.0, y_vel=0.1, pressed=0)
         self.system_params = FlappyParams(
             pressed_x_vel=2.0, pressed_y_vel=2.0, gamma=9.81
         )

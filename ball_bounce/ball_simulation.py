@@ -7,6 +7,7 @@ from .ball_model import BallModel
 from hybrid_models.hybrid_solver import HyEQSolver
 from hybrid_models.hybrid_result import HybridResult
 from pprint import pprint, pformat
+from viztracer import VizTracer
 
 class BallSim:
     """Class to manage simulation runs, and an interface to Do The Thing.
@@ -31,7 +32,7 @@ class BallSim:
             step_time (float): see class attribute of the same name
             seed (Optional[int]): see class attribute of the same name
         """
-        self.start_state = BallState(y_pos=2.0, y_vel=0.0)
+        self.start_state = BallState.from_properties(y_pos=2.0, y_vel=0.0)
         self.system_params = BallParams(
             gamma=9.81,
             restitution_coef=0.5
@@ -46,15 +47,16 @@ class BallSim:
         """
         # deep copy here because the model can change the state, which can
         # bubble back to the init parameters
-        model = BallModel(
-            start_state=deepcopy(self.start_state),
-            system_params=self.system_params,
-            t_max=self.t_max,
-            j_max=self.j_max,
-        )
-        solver = HyEQSolver(model)
-        solution = solver.solve()
-        # FIXME: might want to add this explicitly to the solver,
-        #       but a solution is valid if the solver didn't hard stop
-        #       early (solver.stop)
+        with VizTracer(output_file="result.json"):
+            model = BallModel(
+                start_state=deepcopy(self.start_state),
+                system_params=self.system_params,
+                t_max=self.t_max,
+                j_max=self.j_max,
+            )
+            solver = HyEQSolver(model)
+            solution = solver.solve()
+            # FIXME: might want to add this explicitly to the solver,
+            #       but a solution is valid if the solver didn't hard stop
+            #       early (solver.stop)
         return HybridResult(not solver.stop, None, solution)
