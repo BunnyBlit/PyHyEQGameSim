@@ -3,7 +3,10 @@
 """
 from typing import Generator, List, Optional
 from .input_signal import InputSignal
+import logging
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def btn_1_ordered_sequence_generator(
     max_t: float, step_time: float, direction: str = "asc"
@@ -45,12 +48,13 @@ def btn_1_ordered_sequence_generator(
                 )
                 # add one to it
                 next_sim_num = sim_progress + 1
+                #print(f"Next input as a binary number: {next_sim_num:b}")
                 # back to a binary string
                 # n_samples + 2 to keep the 0b header so we can
                 # go back to an int
                 next_sim_str = \
-                    f"{next_sim_num:0{len(keep_digits) - 1}b}".ljust(
-                        n_samples + 2, "0"
+                    f"{next_sim_num:0{len(keep_digits)}b}".ljust(
+                        n_samples, "0"
                     )
                 i = int(next_sim_str, 2)
             else:
@@ -59,7 +63,7 @@ def btn_1_ordered_sequence_generator(
                 i += 1
     elif direction == "dsc":
         i = 2**n_samples - 1
-        while i > 0:  # maybe never tests all 0's?
+        while i >= 0:
             bin_list = int_to_bin_list(i, n_samples)
             keep_digits = yield InputSignal(bin_list, sample_times)
             if keep_digits:
@@ -81,8 +85,6 @@ def btn_1_ordered_sequence_generator(
                 # we didn't get back anything to skip, so we should just move
                 # to the next input
                 i -= 1
-        # NOTE: we need to return the min value here, the loop will never
-        # actually get to it
     return None
 
 
