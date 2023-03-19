@@ -47,16 +47,15 @@ class BallSim:
         """
         # deep copy here because the model can change the state, which can
         # bubble back to the init parameters
-        with VizTracer(output_file="result.json"):
-            model = BallModel(
-                start_state=deepcopy(self.start_state),
-                system_params=self.system_params,
-                t_max=self.t_max,
-                j_max=self.j_max,
-            )
-            solver = HyEQSolver(model)
-            solution = solver.solve()
-            # FIXME: might want to add this explicitly to the solver,
-            #       but a solution is valid if the solver didn't hard stop
-            #       early (solver.stop)
+        model = BallModel(
+            start_state=deepcopy(self.start_state),
+            system_params=self.system_params,
+            t_max=self.t_max,
+            j_max=self.j_max,
+        )
+        solver = HyEQSolver(model)
+        solution = solver.solve()
+        # FIXME: might want to add this explicitly to the solver,
+        #       but a solution is valid if the solver didn't hard stop
+        #       early (solver.stop)
         return HybridResult(not solver.stop, None, solution)

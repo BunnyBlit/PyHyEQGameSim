@@ -151,7 +151,7 @@ class HyEQSolver(Generic[T]):
                 ode_sol = integrate.solve_ivp(
                     self._flow_wrapper,
                     (self.cur_state.time, self.model.t_max),
-                    self.cur_state.state,
+                    self.cur_state.state._data,
                     events=self.zero_events,
                     max_step=self.max_step,
                     atol=self.atol,
