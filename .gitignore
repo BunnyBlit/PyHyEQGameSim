@@ -3,7 +3,6 @@
 
 # vscode
 .vscode/
-screenshots/
 
 # Object files
 *.o
@@ -219,5 +218,8 @@ cython_debug/
 # 3rd party stuff
 vendor/
 
+# artifacts I generate as part of my dev process
+screenshots/
+traces/
 #OSX stuff
 .DS_Store
