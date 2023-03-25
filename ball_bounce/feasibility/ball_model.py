@@ -4,11 +4,11 @@ from typing import List, Tuple
 from hybrid_models.hybrid_model import HybridModel
 from hybrid_models.hybrid_point import HybridPoint
 from input.input_signal import InputSignal
-from .ball_state import BallState
-from .ball_params import BallParams
+from ..ball_state import BallState
+from ..ball_params import BallParams
 
 
-class BallModel(HybridModel[BallState, BallParams]):
+class FeasibilityBallModel(HybridModel[BallState, BallParams]):
     """It's a hybrid model for a bouncing ball!
        Implements the 4 big functions for hybrid models
        No input in this model. Ball's gonna bounce

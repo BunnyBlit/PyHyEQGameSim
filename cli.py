@@ -3,7 +3,7 @@
 import argparse
 import random
 from flappy.flappy_simulation import FlappySim
-from ball_bounce.ball_simulation import BallSim
+from ball_bounce.reachability.ball_simulation import ReachabilityBallSim
 from plot_utils import plot_state_relation, plot_state_over_time, plot_solutions_combined
 
 
@@ -33,7 +33,7 @@ def single_ball_run(args) -> None:
     """
     max_t = args.max_time
     max_j = args.max_jumps
-    sim = BallSim(max_t,  max_j)
+    sim = ReachabilityBallSim(max_t,  max_j)
     result = sim.single_run()
     print("BIG OLD DATA DUMP INC")
     print(result)

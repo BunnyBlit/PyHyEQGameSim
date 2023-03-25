@@ -1,15 +1,15 @@
 """ Interface for doing a single shot run of a bouncing ball simulation
 """
 from copy import deepcopy
-from .ball_state import BallState
-from .ball_params import BallParams
+from ..ball_state import BallState
+from ..ball_params import BallParams
 from .ball_model import BallModel
 from hybrid_models.hybrid_solver import HyEQSolver
 from hybrid_models.hybrid_result import HybridResult
 from pprint import pprint, pformat
-from viztracer import VizTracer
+#from viztracer import VizTracer
 
-class BallSim:
+class ReachabilityBallSim:
     """Class to manage simulation runs, and an interface to Do The Thing.
     Attributes:
        t_max (float): max time for a sim run. If we get to t_max, we're successful
