@@ -3,7 +3,7 @@
 from copy import deepcopy
 from ..ball_state import BallState
 from ..ball_params import BallParams
-from .ball_model import BallModel
+from .ball_model import ForwardBallModel
 from hybrid_models.hybrid_solver import HyEQSolver
 from hybrid_models.hybrid_result import HybridResult
 from pprint import pprint, pformat
@@ -47,7 +47,7 @@ class ReachabilityBallSim:
         """
         # deep copy here because the model can change the state, which can
         # bubble back to the init parameters
-        model = BallModel(
+        model = ForwardBallModel(
             start_state=deepcopy(self.start_state),
             system_params=self.system_params,
             t_max=self.t_max,

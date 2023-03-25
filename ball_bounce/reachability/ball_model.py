@@ -8,7 +8,7 @@ from ..ball_state import BallState
 from ..ball_params import BallParams
 
 
-class BallModel(HybridModel[BallState, BallParams]):
+class ForwardBallModel(HybridModel[BallState, BallParams]):
     """It's a hybrid model for a bouncing ball!
        Implements the 4 big functions for hybrid models
        No input in this model. Ball's gonna bounce

@@ -4,6 +4,7 @@ import argparse
 import random
 from flappy.flappy_simulation import FlappySim
 from ball_bounce.reachability.ball_simulation import ReachabilityBallSim
+from ball_bounce.feasibility.ball_simulation import FeasibilityBallSim
 from plot_utils import plot_state_relation, plot_state_over_time, plot_solutions_combined
 
 
@@ -39,6 +40,19 @@ def single_ball_run(args) -> None:
     print(result)
     plot_state_over_time(result, ["Height", "Vertical Velocity"], "Ball Height")
 
+def single_backwards_ball_run(args) -> None:
+    """Perform a single backwards run of a bouncing ball
+    Args:
+        args (Namespace): command line arguments from argparse for backwards bouncing ball
+    """
+    max_t = args.max_time
+    max_j = args.max_jumps
+    sim = FeasibilityBallSim(max_t, max_j)
+    result = sim.single_run()
+    print("BIG OLD DATA DUMP INC")
+    print(result)
+    plot_state_over_time(result, ["Height", "Vertical Velocity"], "Ball Height")
+ 
 def find_flappy_reachability_bounds(args) -> None:
     """Do a reachability analysis of Flappy, looking for the upper and
     lower bound.
@@ -84,7 +98,15 @@ def build_cli_parser() -> argparse.ArgumentParser:
     single_ball_parser = ball_analysis_parsers.add_parser("single", help="For doing single runs")
     _add_max_time_argument(single_ball_parser)
     _add_max_jumps_argument(single_ball_parser)
-
+    # backwards ball time
+    backwards_ball_parser = model_parsers.add_parser("backwards_ball", help="For simulating a simple backwards-in-time Bouncing Ball example!")
+    backwards_ball_analysis_parsers = backwards_ball_parser.add_subparsers(
+        description="Subparsers for handling analysis tasks"
+    )
+    single_backwards_ball_parser = backwards_ball_analysis_parsers.add_parser("single", help="For doing single runs")
+    _add_max_time_argument(single_backwards_ball_parser)
+    _add_max_jumps_argument(single_backwards_ball_parser)
+ 
     # flappy time
     flappy_parser = model_parsers.add_parser("flappy", help="For simulating Flappy Bird!")
     flappy_analysis_parsers = flappy_parser.add_subparsers(
@@ -117,6 +139,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
 
     # single run of bouncing ball
     single_ball_parser.set_defaults(func=single_ball_run)
+    # single run of backwards bouncing ball
+    single_backwards_ball_parser.set_defaults(func=single_backwards_ball_run)
     # single run flappy
     single_flappy_parser.set_defaults(func=single_flappy_run)
     # bounds run flappy

@@ -8,8 +8,8 @@ from ..ball_state import BallState
 from ..ball_params import BallParams
 
 
-class FeasibilityBallModel(HybridModel[BallState, BallParams]):
-    """It's a hybrid model for a bouncing ball!
+class BackwardBallModel(HybridModel[BallState, BallParams]):
+    """It's a hybrid model for a bouncing ball backward-in-time!
        Implements the 4 big functions for hybrid models
        No input in this model. Ball's gonna bounce
     Attributes:
@@ -40,7 +40,7 @@ class FeasibilityBallModel(HybridModel[BallState, BallParams]):
         self.state_factory = BallState
 
     def flow(self, hybrid_state: HybridPoint[BallState]) -> BallState:
-        """Flow function! This should take in y and return dy/dt.
+        """Flow function! This should take in y and return dy/dt, for going backwards in time
         Args:
             hybrid_state: (HybridPoint[BallState]): flappy's current state, along with
                                                       the current time and number of jumps
@@ -49,11 +49,11 @@ class FeasibilityBallModel(HybridModel[BallState, BallParams]):
         """
         state = hybrid_state.state
         state.y_pos = state.y_vel
-        state.y_vel = -self.system_params.gamma
+        state.y_vel = self.system_params.gamma
         return state
 
     def jump(self, hybrid_state: HybridPoint[BallState]) -> BallState:
-        """Jump function! This should return a new state after a jump,
+        """Jump function! This should return a new backwards-in-time state after a jump,
            given time and number of jumps and params.
         Args:
             hybrid_state: (HybridPoint[BallState]): flappy's current state, along with
@@ -62,7 +62,7 @@ class FeasibilityBallModel(HybridModel[BallState, BallParams]):
             FlappyState: new state after the jump!
         """
         state = hybrid_state.state
-        state.y_vel = -self.system_params.restitution_coef * state.y_vel
+        state.y_vel = state.y_vel / self.system_params.restitution_coef
         return state
 
     def flow_check(self, hybrid_state: HybridPoint[BallState]) -> Tuple[int, bool]:
