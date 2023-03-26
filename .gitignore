@@ -221,5 +221,6 @@ vendor/
 # artifacts I generate as part of my dev process
 screenshots/
 traces/
+output/
 #OSX stuff
 .DS_Store

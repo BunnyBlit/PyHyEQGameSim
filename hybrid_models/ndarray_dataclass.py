@@ -23,10 +23,14 @@ class NDArrayBacked(Sequence, Generic[T]):
     def __getitem__(self, key:int) -> T:
         return self._data[key]
 
+    def __str__(self) -> str:
+        return ", ".join([f"{elem:0.04f}" for elem in self._data])
+
     @classmethod
     @abstractmethod
     def from_properties(cls):
         pass
 
-    def __str__(self) -> str:
-        return "\t".join([f"{elem:0.04f}" for elem in self._data])
+    @abstractmethod
+    def generate_header(self) -> Sequence[str]:
+        pass
