@@ -17,7 +17,7 @@ class FlappyLevel:
         lower_bound (float): the lowest part of the level our bird can go
         upper_bound (float): the highest part of a level our bird can go
         pipe_width (Optional[float]): for procedural gen, how wide should the pipes be
-        gap (Optional[float]): for procedural gen, how big should the virtical gap between pipes be
+        gap (Optional[float]): for procedural gen, how big should the vertical gap between pipes be
         seed (Optional[int]): for procedural gen, generation seed
     """
 

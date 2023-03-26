@@ -23,8 +23,12 @@ def single_flappy_run(args) -> None:
     num_samples = len(samples)
     max_t = num_samples * sample_rate
 
-    sim = FlappySim(max_t,  max_j, sample_rate, seed)
+    sim = FlappySim(max_t, max_j, sample_rate, seed)
     result = sim.single_run(samples)
+    print("BIG OLD DATA DUMP INC")
+    print(result)
+    plotter = HybridResultPlotter([result], sim.level)
+    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
     #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def single_ball_run(args) -> None:
@@ -76,11 +80,9 @@ def find_flappy_reachability_bounds(args) -> None:
 
     sim = FlappySim(max_t, max_j, sample_rate, seed)
     results = sim.reachability_simulation()
-    plot_solutions_combined(
-        results, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position"
-    )
-
-
+    plotter = HybridResultPlotter(results[0] + results[1], sim.level)
+    plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position") 
+    
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build out a complex tree of subparsers for handling various
         analysis tasks for various models that we have in the repository
