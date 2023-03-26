@@ -48,8 +48,8 @@ class BackwardBallModel(HybridModel[BallState, BallParams]):
             BallState: d[state]/d[time]! The derivative of state w.r.t time given time, number of jumps and system params!
         """
         state = hybrid_state.state
-        state.y_pos = state.y_vel
-        state.y_vel = -self.system_params.gamma
+        state.y_pos = -state.y_vel
+        state.y_vel = self.system_params.gamma
         return state
 
     def jump(self, hybrid_state: HybridPoint[BallState]) -> BallState:
@@ -90,7 +90,7 @@ class BackwardBallModel(HybridModel[BallState, BallParams]):
                       false means keep going
         """
         state = hybrid_state.state
-        if state.y_pos <= 0 and state.y_vel < 0:
+        if state.y_pos <= 0 and state.y_vel > 0:
             return (1, False)
         else:
             return (0, False)
