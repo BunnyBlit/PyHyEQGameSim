@@ -27,3 +27,6 @@ class NDArrayBacked(Sequence, Generic[T]):
     @abstractmethod
     def from_properties(cls):
         pass
+
+    def __str__(self) -> str:
+        return "\t".join([f"{elem:0.04f}" for elem in self._data])

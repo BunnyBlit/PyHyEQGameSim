@@ -5,8 +5,8 @@ import random
 from flappy.flappy_simulation import FlappySim
 from ball_bounce.reachability.ball_simulation import ReachabilityBallSim
 from ball_bounce.feasibility.ball_simulation import FeasibilityBallSim
-from plot_utils import plot_state_relation, plot_state_over_time, plot_solutions_combined
-
+from plot_utils import plot_solutions_combined
+from hybrid_models.hybrid_result_plotter import HybridResultPlotter
 
 def single_flappy_run(args) -> None:
     """Perform a single run of Flappy
@@ -25,7 +25,7 @@ def single_flappy_run(args) -> None:
 
     sim = FlappySim(max_t,  max_j, sample_rate, seed)
     result = sim.single_run(samples)
-    plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
+    #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def single_ball_run(args) -> None:
     """Perform a single run of a bouncing ball
@@ -38,7 +38,8 @@ def single_ball_run(args) -> None:
     result = sim.single_run()
     print("BIG OLD DATA DUMP INC")
     print(result)
-    plot_state_over_time(result, ["Height", "Vertical Velocity"], "Ball Height")
+    plotter = HybridResultPlotter([result])
+    plotter.plot_state_over_time(["Height", "Vertical Velocity"], "Ball Height")
 
 def single_backwards_ball_run(args) -> None:
     """Perform a single backwards run of a bouncing ball
@@ -51,7 +52,8 @@ def single_backwards_ball_run(args) -> None:
     result = sim.single_run()
     print("BIG OLD DATA DUMP INC")
     print(result)
-    plot_state_over_time(result, ["Height", "Vertical Velocity"], "Ball Height")
+    plotter = HybridResultPlotter([result])
+    plotter.plot_state_over_time(["Height", "Vertical Velocity"], "Ball Height")
  
 def find_flappy_reachability_bounds(args) -> None:
     """Do a reachability analysis of Flappy, looking for the upper and

@@ -31,7 +31,7 @@ class FeasibilityBallSim:
             t_max (float): see class attribute of the same name
             j_max (int): see class attribute of the same name
         """
-        self.start_state = BallState.from_properties(y_pos=1.0, y_vel=-5.0)
+        self.start_state = BallState.from_properties(y_pos=1.0, y_vel=-1.0)
         self.system_params = BallParams(
             gamma=9.81,
             restitution_coef=0.5
@@ -57,9 +57,13 @@ class FeasibilityBallSim:
         
         # ok, so our hybrid result is in the correct direction, but the times are gonna be
         # backwards, so we remap them.
-        for idx, new_time in zip(
+        max_solve_time = max([point.time for point in solution])
+        max_solve_jumps = max([point.jumps for point in solution])
+        for idx, new_time, new_jumps in zip(
                 [i for i in range(0, len(solution))],
-                reversed([point.time for point in solution])):
+                [abs(max_solve_time - point.time) for point in solution],
+                [abs(max_solve_jumps - point.jumps) for point in solution]):
             solution[idx].time = new_time
+            solution[idx].jumps = new_jumps
 
         return HybridResult(not solver.stop, None, solution)
