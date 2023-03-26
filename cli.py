@@ -5,7 +5,6 @@ import random
 from flappy.flappy_simulation import FlappySim
 from ball_bounce.reachability.ball_simulation import ReachabilityBallSim
 from ball_bounce.feasibility.ball_simulation import FeasibilityBallSim
-from plot_utils import plot_solutions_combined
 from hybrid_models.hybrid_result_plotter import HybridResultPlotter
 
 def single_flappy_run(args) -> None:

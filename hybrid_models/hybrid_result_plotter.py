@@ -14,6 +14,8 @@ class HybridResultPlotter:
     """Class to plot hybrid result data, works as a wrapper around matplotlib
     Attributes:
         data (Sequence[HybridResult]): the list of sim results (themselves often a list) to plot
+        optional_data (Any): optional data to plot along with the sequence of hybrid results
+        _color_map (Unknown): the matplotlib colormap to use when coloring jumps
     """
     data: Sequence[HybridResult]
     optional_data: Any
@@ -57,7 +59,14 @@ class HybridResultPlotter:
         #fig.show()
 
     def plot_state_over_state(self, x_dim_idx:int, y_dim_idx:int, x_label:str, y_label:str, chart_label:str):
-        """Plot two aspects of state against each other. Plots every run in the data set the plotter has
+        """Plot two aspects of state against each other. Plots every result in self.data on the same graph.
+           Colors by jumps
+        Args:
+            x_dim_idx (int): which dimension from state to graph on the x axis
+            y_dim_idx (int): which dimension from state to graph on the y axis
+            x_label (str): x-axis label
+            y_label (str): y-axis label
+            chart_label (str): chart label 
         """
         fig = plt.figure(layout="constrained")
         fig.suptitle(chart_label)
@@ -79,9 +88,17 @@ class HybridResultPlotter:
         plt.show()
 
     def plot_reachability(self, x_dim_idx:int, y_dim_idx:int, x_label:str, y_label:str, chart_label:str):
+        """ Plot the results of a reachability sim-- what parts of the space can the start state get to?
+            bounds are drawn in blue, failed runs are drawn in red.
+        Args:
+            x_dim_idx (int): which dimension from state to graph on the x axis
+            y_dim_idx (int): which dimension from state to graph on the y axis
+            x_label (str): x-axis label
+            y_label (str): y-axis label
+            chart_label (str): chart label
+        """
         fig = plt.figure(layout='constrained')
         fig.suptitle(chart_label)
-        # color_map = mpl.colormaps['plasma']  # type: ignore
 
         # set up subgraphs
         ax = fig.add_subplot()
@@ -97,15 +114,24 @@ class HybridResultPlotter:
         
         plt.show()
 
-    def _plot_reachability_run(self, run_idx, x_dim_idx, y_dim_idx, ax, plot_failure=False):
+    def _plot_reachability_run(self, run_idx:int, x_dim_idx:int, y_dim_idx:int, ax, plot_failure=False):
+        """ Plot the results of a run from a reachability simulation. Assumes self.data came from such
+            a run.
+        Args:
+            run_idx (int): run in self.data to graph
+            x_dim_idx (int): which dimension from state to graph on the x axis
+            y_dim_idx (int): which dimension from state to graph on the y axis
+            ax (Axes): matplotlib axes to graph on
+            plot_failure (bool): if we should plot failed runs or not
+        Returns:
+            ax (Axes): the axes with the run graphed on them
+        """
         run = self.data[run_idx]
-        good = run.successful
-        input = run.input_sequence
         output = run.sim_result
         x_data = [point.state[x_dim_idx] for point in output]
         y_data = [point.state[y_dim_idx] for point in output]
     
-        if good:
+        if run.successful:
             ax.plot(
                 x_data,
                 y_data,
@@ -153,6 +179,17 @@ class HybridResultPlotter:
     
     @classmethod
     def _organize_by_jumps(cls, hybrid_points:Sequence[HybridPoint], sort_by:Callable) -> Tuple[defaultdict, List]:
+        """Given a sequence of hybrid points, organize them by jump such that
+            0: [the slice of points with no prior jumps]
+            1: [the slice of points with one prior jump]
+            ...
+            Then evenly divide our color space by the number of jumps so we can give each slice a 
+            unique color.
+        Args:
+            hybrid_points (Sequence[HybridPoint]): the hybrid points to break up
+            sort_by (Callable): a function that takes in one hybrid point and returns the value to
+                                sort each slice by
+        """
         data_by_jumps = defaultdict(list)
         for point in hybrid_points:
             data_by_jumps[point.jumps].append(point)
@@ -165,6 +202,13 @@ class HybridResultPlotter:
         return data_by_jumps, color_idxs
     
     def _plot_level(self, ax):
+        """ Plot optional data as a level.
+            This is very experimental and probably won't live here forever
+        Args:
+            ax (Axes): matplotlib axes to plot on
+        Returns:
+            Axes: the same matplotlib axes, just modified
+        """
         if self.optional_data:
             for obstacle in self.optional_data.obstacles: #type: ignore (not dealing with the pol)
                 width = obstacle[1][0] - obstacle[0][0]

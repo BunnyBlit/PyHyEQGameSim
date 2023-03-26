@@ -62,9 +62,7 @@ class BackwardBallModel(HybridModel[BallState, BallParams]):
             FlappyState: new state after the jump!
         """
         state = hybrid_state.state
-        print(f"Before: {state}")
         state.y_vel = state.y_vel / -self.system_params.restitution_coef
-        print(f"After: {state}")
         return state
 
     def flow_check(self, hybrid_state: HybridPoint[BallState]) -> Tuple[int, bool]:
@@ -93,7 +91,6 @@ class BackwardBallModel(HybridModel[BallState, BallParams]):
         """
         state = hybrid_state.state
         if state.y_pos <= 0 and state.y_vel < 0:
-            print(f"TRIGGERED A JUMP:\t{state}")
             return (1, False)
         else:
             return (0, False)
