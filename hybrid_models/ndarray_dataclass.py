@@ -30,7 +30,3 @@ class NDArrayBacked(Sequence, Generic[T]):
     @abstractmethod
     def from_properties(cls):
         pass
-
-    @abstractmethod
-    def generate_header(self) -> Sequence[str]:
-        pass
