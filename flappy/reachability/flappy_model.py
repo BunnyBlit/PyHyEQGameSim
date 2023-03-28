@@ -4,12 +4,12 @@ from typing import List, Tuple
 from hybrid_models.hybrid_model import HybridModel
 from hybrid_models.hybrid_point import HybridPoint
 from input.input_signal import InputSignal
-from .flappy_state import FlappyState
-from .flappy_params import FlappyParams
-from .flappy_level import FlappyLevel
+from ..flappy_state import FlappyState
+from ..flappy_params import FlappyParams
+from ..flappy_level import FlappyLevel
 
 
-class FlappyModel(HybridModel[FlappyState, FlappyParams]):
+class ForwardFlappyModel(HybridModel[FlappyState, FlappyParams]):
     """It's a hybrid model for flappy bird!
        Implements the 4 big functions for hybrid models,
        as well as a way to get input. For flappy, input is a single button 0 (off) or 1 (on)

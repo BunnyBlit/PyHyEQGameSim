@@ -3,17 +3,17 @@
 import time
 from copy import deepcopy
 from typing import List, Tuple, Generator, Optional
-from .flappy_model import FlappyModel
-from .flappy_state import FlappyState
-from .flappy_level import FlappyLevel
-from .flappy_params import FlappyParams
+from .flappy_model import ForwardFlappyModel
+from ..flappy_state import FlappyState
+from ..flappy_level import FlappyLevel
+from ..flappy_params import FlappyParams
 from input.input_generators import btn_1_ordered_sequence_generator, time_sequence
 from input.input_signal import InputSignal
 from hybrid_models.hybrid_solver import HyEQSolver
 from hybrid_models.hybrid_result import HybridResult
 
 
-class FlappySim:
+class ReachabilityFlappySim:
     """Class to manage simulation runs, and an interface to Do The Thing.
     Attributes:
        t_max (float): max time for a sim run. If we get to t_max, we're successful
@@ -60,7 +60,7 @@ class FlappySim:
         input_sequence = time_sequence(direct_sequence, self.step_time)
         # deep copy here because the model can change the state, which can
         # bubble back to the init parameters
-        model = FlappyModel(
+        model = ForwardFlappyModel(
             start_state=deepcopy(self.start_state),
             system_params=self.system_params,
             t_max=self.t_max,
@@ -122,7 +122,7 @@ class FlappySim:
         input_sequence = None
         # deep copy here because the model can change the state, which can
         # bubble back to the init object
-        model = FlappyModel(
+        model = ForwardFlappyModel(
             start_state=deepcopy(self.start_state),
             system_params=self.system_params,
             t_max=self.t_max,

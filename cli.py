@@ -2,33 +2,12 @@
 """
 import argparse
 import random
-from flappy.flappy_simulation import FlappySim
+from flappy.reachability.flappy_simulation import ReachabilityFlappySim
+from flappy.feasibility.flappy_simulation import FeasibilityFlappySim
+
 from ball_bounce.reachability.ball_simulation import ReachabilityBallSim
 from ball_bounce.feasibility.ball_simulation import FeasibilityBallSim
 from hybrid_models.hybrid_result_plotter import HybridResultPlotter
-
-def single_flappy_run(args) -> None:
-    """Perform a single run of Flappy
-    Args:
-         args (Namespace): command line arguments from argparse
-    """
-    sample_rate = args.sample_rate
-    samples = args.samples
-    seed = args.seed
-    max_j = args.max_jumps
-
-    random.seed(seed)
-    # derive the end time from the provided samples + sampling rate
-    num_samples = len(samples)
-    max_t = num_samples * sample_rate
-
-    sim = FlappySim(max_t, max_j, sample_rate, seed)
-    result = sim.single_run(samples)
-    print("BIG OLD DATA DUMP INC")
-    print(result)
-    plotter = HybridResultPlotter([result], sim.level)
-    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
-    #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def single_ball_run(args) -> None:
     """Perform a single run of a bouncing ball
@@ -57,7 +36,53 @@ def single_backwards_ball_run(args) -> None:
     print(result)
     plotter = HybridResultPlotter([result])
     plotter.plot_state_over_time(["Height", "Vertical Velocity"], "Ball Height")
- 
+
+def single_flappy_run(args) -> None:
+    """Perform a single run of Flappy
+    Args:
+         args (Namespace): command line arguments from argparse
+    """
+    sample_rate = args.sample_rate
+    samples = args.samples
+    seed = args.seed
+    max_j = args.max_jumps
+
+    random.seed(seed)
+    # derive the end time from the provided samples + sampling rate
+    num_samples = len(samples)
+    max_t = num_samples * sample_rate
+
+    sim = ReachabilityFlappySim(max_t, max_j, sample_rate, seed)
+    result = sim.single_run(samples)
+    print("BIG OLD DATA DUMP INC")
+    print(result)
+    plotter = HybridResultPlotter([result], sim.level)
+    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
+
+def single_backwards_flappy_run(args) -> None:
+    """Perform a single run of Flappy
+    Args:
+         args (Namespace): command line arguments from argparse
+    """
+    sample_rate = args.sample_rate
+    samples = args.samples
+    seed = args.seed
+    max_j = args.max_jumps
+
+    random.seed(seed)
+    # derive the end time from the provided samples + sampling rate
+    num_samples = len(samples)
+    max_t = num_samples * sample_rate
+
+    sim = FeasibilityFlappySim(max_t, max_j, sample_rate, seed)
+    result = sim.single_run(samples)
+    print("BIG OLD DATA DUMP INC")
+    print(result)
+    plotter = HybridResultPlotter([result], sim.level)
+    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
+
 def find_flappy_reachability_bounds(args) -> None:
     """Do a reachability analysis of Flappy, looking for the upper and
     lower bound.
@@ -77,7 +102,7 @@ def find_flappy_reachability_bounds(args) -> None:
     if num_samples:
         max_t = num_samples * sample_rate
 
-    sim = FlappySim(max_t, max_j, sample_rate, seed)
+    sim = ReachabilityFlappySim(max_t, max_j, sample_rate, seed)
     results = sim.reachability_simulation()
     plotter = HybridResultPlotter(results[0] + results[1], sim.level)
     plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position") 
@@ -88,7 +113,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
         README either does or will have information!
     """
     parser = argparse.ArgumentParser(
-        prog="FlappySim", description="A Hybrid Automata Simulation of Flappy Bird"
+        prog="HyEQGameSim", description="A Hybrid Equations Simulator for Video Games"
     )
     model_parsers = parser.add_subparsers(
         description="Subparsers for which model we're running on"
@@ -120,13 +145,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     _add_sample_rate(single_flappy_parser)
     _add_seed(single_flappy_parser)
     _add_max_jumps_argument(single_flappy_parser)
-    single_flappy_parser.add_argument(
-        "-s",
-        "--samples",
-        type=int,
-        nargs="*",
-        help="Specify a list of sample values directly",
-    )
+    _add_raw_samples_argument(single_flappy_parser)
 
     # reachability analysis
     reachability_flappy_parser = flappy_analysis_parsers.add_parser(
@@ -140,6 +159,18 @@ def build_cli_parser() -> argparse.ArgumentParser:
     _add_max_time_argument(bounds_number_of_samples_group)
     _add_num_samples_argument(bounds_number_of_samples_group)
 
+    # backwards flappy time
+    backwards_flappy_parser = model_parsers.add_parser("backwards_flappy", help="For simulating Flappy Bird backwards in time!")
+    backwards_flappy_analysis_parsers = backwards_flappy_parser.add_subparsers(
+        description="Subparsers for handling analysis tasks"
+    )
+    # single runs
+    single_backwards_flappy_parser = backwards_flappy_analysis_parsers.add_parser("single", help="For doing single runs")
+    _add_sample_rate(single_backwards_flappy_parser)
+    _add_seed(single_backwards_flappy_parser)
+    _add_max_jumps_argument(single_backwards_flappy_parser)
+    _add_raw_samples_argument(single_backwards_flappy_parser)
+
     # single run of bouncing ball
     single_ball_parser.set_defaults(func=single_ball_run)
     # single run of backwards bouncing ball
@@ -148,6 +179,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
     single_flappy_parser.set_defaults(func=single_flappy_run)
     # bounds run flappy
     reachability_flappy_parser.set_defaults(func=find_flappy_reachability_bounds)
+    # single run of backwards flappy
+    single_backwards_flappy_parser.set_defaults(func=single_backwards_flappy_run)
 
     return parser
 
@@ -210,6 +243,18 @@ def _add_seed(parse_obj):
         type=int,
         help="Level generation seed",
         default=random.randint(0, 10000),
+    )
+
+def _add_raw_samples_argument(parse_obj):
+    """ Add the ability to specify exactly what the samples should be, evenly
+        spaced through time for a run.
+    """
+    parse_obj.add_argument(
+        "-s",
+        "--samples",
+        type=int,
+        nargs="*",
+        help="Specify a list of sample values directly" 
     )
 
 if "__main__" == __name__:
