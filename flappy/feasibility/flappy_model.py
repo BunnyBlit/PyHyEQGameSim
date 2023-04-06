@@ -1,13 +1,13 @@
 """ Hybrid model for flappy bird
 """
-from typing import List, Tuple
+from typing import List, Tuple, cast
 from hybrid_models.hybrid_model import HybridModel
 from hybrid_models.hybrid_point import HybridPoint
 from input.input_signal import InputSignal
 from ..flappy_state import FlappyState
 from ..flappy_params import FlappyParams
 from ..flappy_level import FlappyLevel
-
+from pprint import pprint, pformat
 
 class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
     """It's a hybrid model for flappy bird that works backwards-in-time!
@@ -47,25 +47,78 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
         self.state_factory = FlappyState
         self.level = level
 
-    def get_input(self, time: float, jumps: int) -> int:
+    def get_input(self, time: float, jumps: int) -> Tuple[float, int]:
         """ Sample the input signal for the value of input at the provided time, jumps
            for flappy bird.
         Args:
            time (float): current sim time
            jumps (int): current number of sim jumps
         Returns:
-           int: value if the input signal is pressed or not
+            Tuple of [time, button value]
         """
         if not self.input_sequence:
             raise RuntimeError("Need to set an input sequence before getting input!")
 
-        samples_with_distance_to_now = [
-            (sample_time, sample, abs(time - sample_time))
-            for sample_time, sample in self.input_sequence
-        ]
-        samples_with_distance_to_now.sort(key=lambda elem: elem[2])
-        sample = samples_with_distance_to_now[0]
-        return int(sample[1])
+        max_sample_time = self.input_sequence.times[-1]
+        flipped_sample_time = abs(time - max_sample_time) if time < max_sample_time else 0.0 # need to ceiling this signal
+        print(f"Get Input Time: {flipped_sample_time:0.4f}")
+        # input_sequence is sorted according to time
+        # FIXME: which means there is a better way to do this
+        best_sample_idx = -1
+        best_time = float("inf")
+        # we want to find the closest sample to (time) without going over
+        # i.e.: never use a future sample to figure out the current value
+        for idx, sequence_values in enumerate(self.input_sequence):
+            sample_time, _ = sequence_values
+            temporal_distance = flipped_sample_time - sample_time
+            if temporal_distance < 0:
+                continue
+            if temporal_distance < best_time:
+                best_time = temporal_distance
+                best_sample_idx = idx
+
+        if best_sample_idx == -1:
+            raise Exception("Unable to find a good sample!")
+
+        # TODO: I have given up. There's just no good way to override __getitem__
+        #       so it works like it does for Python builtins
+        return_value = cast(Tuple[float, int], self.input_sequence[best_sample_idx])
+        return return_value[0], return_value[1]
+
+    def reverse_y_vel_from_signal(self, time: float, near_sample_time:float, jumps: int) -> float:
+        """ Reverse calculate what the y_vel at the end of a falling state without needing to
+            forward simulate it.
+        """
+        if not self.input_sequence:
+            raise RuntimeError("Need to set an input sequence before using it to calculate a final y_vel")
+        
+        max_sample_time = self.input_sequence.times[-1]
+        flipped_time = abs(time - max_sample_time) if time < max_sample_time else 0.0 # need to ceiling this signal
+
+        print(f"Calculating final y vel for reverse at time: {flipped_time:0.4f} ({time:0.4f})")
+        nearest_sample_idx = [idx for idx, sample_value in enumerate(self.input_sequence) if cast(Tuple[float, float | int], sample_value)[0] == near_sample_time][0]
+        falling_samples = []
+        print(f"Using input sample idx: {nearest_sample_idx}")
+        print("value:")
+        print(self.input_sequence[nearest_sample_idx])
+        # FIXME: I don't think I'm handling strides correctly
+        for signal in self.input_sequence[:nearest_sample_idx][::-1]:
+            # TODO: see above, I can't figure out a good __getitem__ pattern
+            #       so we have this unholy, slow hack instead
+            signal = cast(Tuple[float, float | int], signal)
+            time, sample_value = signal
+            if sample_value == 0:
+                falling_samples.append(signal)
+            else:
+                break
+    
+        print(f"Falling samples:\n{pformat(falling_samples)}")
+        fall_start_time = falling_samples[-1][0] # comes from a backwards in time list
+        print(f"Fall start time: {fall_start_time}")
+        # OK! We have all the info we need
+        ending_y_vel = self.system_params.pressed_y_vel + (-self.system_params.gamma) * (flipped_time - fall_start_time)
+        print(f"Calculated ending y vel: {ending_y_vel}")
+        return ending_y_vel
 
     def check_collisions(self, state: FlappyState) -> bool:
         """ Check to see if we're colliding with anything. For flappy, this should
@@ -132,14 +185,16 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
         time = hybrid_state.time
         jumps = hybrid_state.jumps
         # sample input signal
-        new_pressed = self.get_input(time, jumps)
+        sample_time, new_pressed = self.get_input(time, jumps)
         state.pressed = new_pressed
         # jump according to the new input signal
         if new_pressed == 1:
             state.y_vel = -self.system_params.pressed_y_vel
-        
-        # TODO: I keep waffling if I need to pre-compute what the y_vel is on button release
-        #       but I low key think I don't have to because I have a backwards-in-time flow function?
+        else:
+            # peek back at the input signal, figure out how long flappers has been falling for
+            # and set the y vel accordingly
+            state.y_vel = self.reverse_y_vel_from_signal(time, sample_time, jumps)
+
         return state
 
     def flow_check(self, hybrid_state: HybridPoint[FlappyState]) -> Tuple[int, bool]:
@@ -160,7 +215,7 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
         if colliding:
             return (0, True)
 
-        new_pressed = self.get_input(time, jumps)
+        _, new_pressed = self.get_input(time, jumps)
         if new_pressed != state.pressed:
             return (0, False)
 
@@ -184,7 +239,9 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
         if colliding:
             return (0, True)
 
-        new_pressed = self.get_input(time, jumps)
+        _, new_pressed = self.get_input(time, jumps)
+        print(f"{time:0.4f}\t{state.pressed} --> {_:0.04f}\t{new_pressed}")
         if new_pressed != state.pressed:
+            print(f"... We should jump now!")
             return (1, False)
         return (0, False)

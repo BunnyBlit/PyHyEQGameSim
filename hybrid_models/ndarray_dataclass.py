@@ -24,7 +24,7 @@ class NDArrayBacked(Sequence, Generic[T]):
         return self._data[key]
 
     def __str__(self) -> str:
-        return ", ".join([f"{elem:0.04f}" for elem in self._data])
+        return "\t".join([f"{elem:0.04f}" for elem in self._data])
 
     @classmethod
     @abstractmethod

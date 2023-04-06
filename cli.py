@@ -49,7 +49,7 @@ def single_flappy_run(args) -> None:
 
     random.seed(seed)
     # derive the end time from the provided samples + sampling rate
-    num_samples = len(samples)
+    num_samples = len(samples) - 1
     max_t = num_samples * sample_rate
 
     sim = ReachabilityFlappySim(max_t, max_j, sample_rate, seed)
@@ -57,7 +57,8 @@ def single_flappy_run(args) -> None:
     print("BIG OLD DATA DUMP INC")
     print(result)
     plotter = HybridResultPlotter([result], sim.level)
-    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Forward Flappy Breakdown")
+    #plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
     #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def single_backwards_flappy_run(args) -> None:
@@ -72,15 +73,16 @@ def single_backwards_flappy_run(args) -> None:
 
     random.seed(seed)
     # derive the end time from the provided samples + sampling rate
-    num_samples = len(samples)
+    num_samples = len(samples) - 1
     max_t = num_samples * sample_rate
-
+    print(max_t)
     sim = FeasibilityFlappySim(max_t, max_j, sample_rate, seed)
     result = sim.single_run(samples)
     print("BIG OLD DATA DUMP INC")
     print(result)
     plotter = HybridResultPlotter([result], sim.level)
-    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Backward Flappy Breakdown")
+    #plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
     #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def find_flappy_reachability_bounds(args) -> None:

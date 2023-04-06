@@ -67,6 +67,7 @@ class ReachabilityFlappySim:
             j_max=self.j_max,
             level=self.level,
         )
+        print(input_sequence)
         model.input_sequence = input_sequence
         solver = HyEQSolver(model)
         solution = solver.solve()

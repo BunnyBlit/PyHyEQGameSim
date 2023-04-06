@@ -58,14 +58,25 @@ class ForwardFlappyModel(HybridModel[FlappyState, FlappyParams]):
         """
         if not self.input_sequence:
             raise RuntimeError("Need to set an input sequence before getting input!")
+        
+        # input_sequence is sorted according to time
+        # FIXME: which means there is a better way to do this
+        best_value = None
+        best_time = float("inf")
+        # we want to find the closest sample to (time) without going over
+        # i.e.: never use a future sample to figure out the current value
+        for sample_time, sample_value in self.input_sequence:
+            temporal_distance = time - sample_time
+            if temporal_distance < 0:
+                continue
+            if temporal_distance < best_time:
+                best_time = temporal_distance
+                best_value = sample_value
 
-        samples_with_distance_to_now = [
-            (sample_time, sample, abs(time - sample_time))
-            for sample_time, sample in self.input_sequence
-        ]
-        samples_with_distance_to_now.sort(key=lambda elem: elem[2])
-        sample = samples_with_distance_to_now[0]
-        return int(sample[1])
+        if best_value is None:
+            raise Exception("Unable to find a good sample!")
+
+        return int(best_value)
 
     def check_collisions(self, state: FlappyState) -> bool:
         """ Check to see if we're colliding with anything. For flappy, this should

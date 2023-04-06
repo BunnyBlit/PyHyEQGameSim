@@ -1,8 +1,10 @@
 
 from .hybrid_result import HybridResult
 from .hybrid_point import HybridPoint
+from input.input_signal import InputSignal
+
 from collections import defaultdict
-from typing import List, Sequence, Any, Callable, Tuple
+from typing import List, Sequence, Any, Callable, Tuple, cast
 import math
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -58,6 +60,39 @@ class HybridResultPlotter:
         plt.show()
         #fig.show()
 
+    def plot_state_and_input_over_time(self, state_labels:List[str], chart_label:str):
+        fig = plt.figure(layout="constrained")
+        fig.suptitle(chart_label)
+        solution_to_plot:List[HybridPoint] = self.data[0].sim_result
+        # FIXME: gotta update this, this cast is _real loose_
+        input_to_plot:InputSignal = cast(InputSignal, self.data[0].input_sequence)
+
+        state_dim = len(solution_to_plot[0].state) + 1
+        # set up subgraphs for state
+        for dim, label in zip(range(state_dim), state_labels + ["Actual Input"]):
+            fig.add_subplot(state_dim, 1, dim + 1)
+            fig.axes[-1].set_xlabel("Time")
+            fig.axes[-1].set_ylabel(label)
+        
+        solution_by_jumps, plt_color_indices = self._organize_by_jumps(solution_to_plot, lambda point: point.time)
+
+        for idx, ax in enumerate(fig.axes):
+            if idx < len(solution_to_plot[0].state):
+                for jump, slice in solution_by_jumps.items():
+                    x_data = [float(point.time) for point in slice]
+                    y_data = [float(point.state[idx]) for point in slice]
+                    ax.plot(x_data, y_data, color=self._color_map.colors[plt_color_indices[jump]], label=f"Jump {jump}")
+                # just for one graph. trying to figure out legend placement is ruining me
+                if(idx == 0):
+                    ax.legend()
+            else:
+                x_data = [float(sample[0]) for sample in input_to_plot]
+                y_data = [float(sample[1]) for sample in input_to_plot]
+                ax.plot(x_data, y_data)
+    
+        plt.show()
+        #fig.show()
+        #  
     def plot_state_over_state(self, x_dim_idx:int, y_dim_idx:int, x_label:str, y_label:str, chart_label:str):
         """Plot two aspects of state against each other. Plots every result in self.data on the same graph.
            Colors by jumps

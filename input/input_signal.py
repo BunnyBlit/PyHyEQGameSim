@@ -3,7 +3,7 @@
 """
 
 from dataclasses import dataclass
-from typing import List, Union, Iterable
+from typing import List, Union, Iterable, Tuple
 
 
 @dataclass
@@ -17,7 +17,7 @@ class InputSignal(Iterable):
            label (str): signal label
     """
 
-    samples: Union[List[int], List[float]]
+    samples: List[int | float]
     times: List[float]
     label: str = "No Label Provided"
     _idx: int = 0  # so we can be an iterator
@@ -37,3 +37,21 @@ class InputSignal(Iterable):
             return (self.times[self._idx], self.samples[self._idx])
         else:
             raise StopIteration
+    
+    def __getitem__(self, key:int | slice)-> Tuple[float, int | float] | List[Tuple[float, int | float]]:
+        """ Direct access to samples so we don't need to run through
+            the whole signal. Supports slicing and single element access
+            TODO: this is a sin
+        """
+        if isinstance(key, int):
+            return (self.times[key], self.samples[key])
+        elif isinstance(key, slice):
+            return [(time, sample) for time, sample in zip(self.times[key], self.samples[key])]
+
+    def __str__(self) -> str:
+        """ For pretty printing of signals
+        """
+        print_str = ""
+        for time, sample in zip(self.samples, self.times):
+            print_str += f"{time:0.04f}\t{sample:0.04f}\n"
+        return print_str
