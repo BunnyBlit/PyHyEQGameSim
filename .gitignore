@@ -224,3 +224,6 @@ traces/
 output/
 #OSX stuff
 .DS_Store
+
+# conda stuff
+.conda
