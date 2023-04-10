@@ -95,12 +95,8 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
         max_sample_time = self.input_sequence.times[-1]
         flipped_time = abs(time - max_sample_time) if time < max_sample_time else 0.0 # need to ceiling this signal
 
-        print(f"Calculating final y vel for reverse at time: {flipped_time:0.4f} ({time:0.4f})")
         nearest_sample_idx = [idx for idx, sample_value in enumerate(self.input_sequence) if cast(Tuple[float, float | int], sample_value)[0] == near_sample_time][0]
         falling_samples = []
-        print(f"Using input sample idx: {nearest_sample_idx}")
-        print("value:")
-        print(self.input_sequence[nearest_sample_idx])
         # FIXME: I don't think I'm handling strides correctly
         for signal in self.input_sequence[:nearest_sample_idx][::-1]:
             # TODO: see above, I can't figure out a good __getitem__ pattern
@@ -112,12 +108,10 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
             else:
                 break
     
-        print(f"Falling samples:\n{pformat(falling_samples)}")
         fall_start_time = falling_samples[-1][0] # comes from a backwards in time list
-        print(f"Fall start time: {fall_start_time}")
+
         # OK! We have all the info we need
         ending_y_vel = self.system_params.pressed_y_vel + (-self.system_params.gamma) * (flipped_time - fall_start_time)
-        print(f"Calculated ending y vel: {ending_y_vel}")
         return ending_y_vel
 
     def check_collisions(self, state: FlappyState) -> bool:
@@ -240,8 +234,6 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
             return (0, True)
 
         _, new_pressed = self.get_input(time, jumps)
-        print(f"{time:0.4f}\t{state.pressed} --> {_:0.04f}\t{new_pressed}")
         if new_pressed != state.pressed:
-            print(f"... We should jump now!")
             return (1, False)
         return (0, False)
