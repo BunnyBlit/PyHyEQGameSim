@@ -23,3 +23,6 @@ class HybridPoint(Generic[T]):
     time: float
     state: T
     jumps: int
+
+    def __str__(self):
+        return f"{self.time:0.4f}\t{self.state}\t{self.jumps}"
