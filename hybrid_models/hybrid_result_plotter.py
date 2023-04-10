@@ -41,7 +41,7 @@ class HybridResultPlotter:
         state_dim = len(solution_to_plot[0].state)
         # set up subgraphs
         for dim, label in zip(range(state_dim), state_labels):
-            fig.add_subplot(state_dim, 1, dim + 1)
+            fig.add_subplot(state_dim, 1, dim + 1) #type: ignore matplotlib's types are wonktastic
             fig.axes[-1].set_xlabel("Time")
             fig.axes[-1].set_ylabel(label)
         
@@ -58,7 +58,6 @@ class HybridResultPlotter:
                 ax.legend()
     
         plt.show()
-        #fig.show()
 
     def plot_state_and_input_over_time(self, state_labels:List[str], chart_label:str):
         fig = plt.figure(layout="constrained")
@@ -70,7 +69,7 @@ class HybridResultPlotter:
         state_dim = len(solution_to_plot[0].state) + 1
         # set up subgraphs for state
         for dim, label in zip(range(state_dim), state_labels + ["Actual Input"]):
-            fig.add_subplot(state_dim, 1, dim + 1)
+            fig.add_subplot(state_dim, 1, dim + 1) #type: ignore matplotlib's types are wonktastic
             fig.axes[-1].set_xlabel("Time")
             fig.axes[-1].set_ylabel(label)
         
@@ -105,7 +104,7 @@ class HybridResultPlotter:
         """
         fig = plt.figure(layout="constrained")
         fig.suptitle(chart_label)
-        ax = fig.add_subplot()
+        ax = fig.add_subplot() #type: ignore
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
 
@@ -136,17 +135,16 @@ class HybridResultPlotter:
         fig.suptitle(chart_label)
 
         # set up subgraphs
-        ax = fig.add_subplot()
+        ax = fig.add_subplot() #type: ignore matplotlib be crazy
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
-
         # do all the solution plotting
         for run_idx in range(0, len(self.data)):
-            ax = self._plot_reachability_run(run_idx, x_dim_idx, y_dim_idx, ax)
+            ax = self._plot_reachability_run(run_idx, x_dim_idx, y_dim_idx, ax, plot_failure=True)
 
         # do the level plotting
         ax = self._plot_level(ax)
-        
+        #import pdb; pdb.set_trace()
         plt.show()
 
     def _plot_reachability_run(self, run_idx:int, x_dim_idx:int, y_dim_idx:int, ax, plot_failure=False):
@@ -165,7 +163,8 @@ class HybridResultPlotter:
         output = run.sim_result
         x_data = [point.state[x_dim_idx] for point in output]
         y_data = [point.state[y_dim_idx] for point in output]
-    
+        #print(x_data)
+        #print(y_data)
         if run.successful:
             ax.plot(
                 x_data,

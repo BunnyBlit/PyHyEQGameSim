@@ -106,8 +106,8 @@ def find_flappy_reachability_bounds(args) -> None:
 
     sim = ReachabilityFlappySim(max_t, max_j, sample_rate, seed)
     results = sim.reachability_simulation()
-    plotter = HybridResultPlotter(results[0] + results[1], sim.level)
-    plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position") 
+    plotter = HybridResultPlotter(results[0] + results[1], sim.model.level)
+    plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position")
     
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build out a complex tree of subparsers for handling various

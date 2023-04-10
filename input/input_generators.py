@@ -39,7 +39,7 @@ def btn_1_ordered_sequence_generator(
     if direction == "asc":
         i = 0
         while i < 2**n_samples:
-            bin_list = int_to_bin_list(i, n_samples)
+            bin_list = _int_to_bin_list(i, n_samples)
             keep_digits = yield InputSignal(bin_list, sample_times)
             if keep_digits:
                 # convert as far as the sim got to a number
@@ -56,7 +56,10 @@ def btn_1_ordered_sequence_generator(
                     f"{next_sim_num:0{len(keep_digits)}b}".ljust(
                         n_samples, "0"
                     )
-                i = int(next_sim_str, 2)
+                next_int = int(next_sim_str, 2)
+                if next_int < i:
+                    break
+                i = next_int
             else:
                 # we didn't get back anything to skip, so we should just move
                 # to the next input
@@ -64,7 +67,7 @@ def btn_1_ordered_sequence_generator(
     elif direction == "dsc":
         i = 2**n_samples - 1
         while i >= 0:
-            bin_list = int_to_bin_list(i, n_samples)
+            bin_list = _int_to_bin_list(i, n_samples)
             keep_digits = yield InputSignal(bin_list, sample_times)
             if keep_digits:
                 # convert as far as the sim got to a number
@@ -77,10 +80,13 @@ def btn_1_ordered_sequence_generator(
                 # n_samples + 2 to keep the 0b header so we can
                 # go back to an int
                 next_sim_str = \
-                    f"{next_sim_num:0{len(keep_digits) - 1}b}".ljust(
-                        n_samples + 2, "1"
+                    f"{next_sim_num:0{len(keep_digits)}b}".ljust(
+                        n_samples, "1"
                     )
-                i = int(next_sim_str, 2)
+                next_int = int(next_sim_str, 2)
+                if next_int > i:
+                    break
+                i = next_int
             else:
                 # we didn't get back anything to skip, so we should just move
                 # to the next input
@@ -97,7 +103,7 @@ def time_sequence(input_samples, step_time) -> InputSignal:
     )
 
 
-def int_to_bin_list(num, width) -> List[int]:
+def _int_to_bin_list(num, width) -> List[int]:
     """Convert a number to a binary list representation of that number
        num=4, width=4 -> 0, 1, 0, 0
        num=4, width=2 -> 1, 0, 0

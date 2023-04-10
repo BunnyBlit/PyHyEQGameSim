@@ -17,7 +17,7 @@ class InputSignal(Iterable):
            label (str): signal label
     """
 
-    samples: List[int | float]
+    samples: List[Union[int, float]]
     times: List[float]
     label: str = "No Label Provided"
     _idx: int = 0  # so we can be an iterator
