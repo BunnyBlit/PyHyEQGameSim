@@ -3,6 +3,7 @@
 import time
 from copy import deepcopy
 from typing import List, Tuple, Generator, Optional
+from hybrid_models.hybrid_simulation import HybridSim
 from .flappy_model import BackwardsFlappyModel
 from ..flappy_state import FlappyState
 from ..flappy_level import FlappyLevel
@@ -13,7 +14,7 @@ from hybrid_models.hybrid_solver import HyEQSolver
 from hybrid_models.hybrid_result import HybridResult
 
 
-class FeasibilityFlappySim:
+class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
     """Class to manage simulation runs, and an interface to Do The Thing.
     Attributes:
        t_max (float): max time for a sim run. If we get to t_max, we're successful
@@ -23,12 +24,7 @@ class FeasibilityFlappySim:
        level (FlappyLevel): level to simulate on
        seed (int): seed to use for level generation
     """
-
-    t_max: float
-    j_max: int
     step_time: float
-    start_state: FlappyState
-    system_params: FlappyParams
     level: FlappyLevel
     seed: Optional[int]
 
@@ -40,15 +36,17 @@ class FeasibilityFlappySim:
             step_time (float): see class attribute of the same name
             seed (Optional[int]): see class attribute of the same name
         """
-        self.start_state = FlappyState.from_properties(x_pos=1.7032, y_pos=2.8719, y_vel=2.0, pressed=1)
-        self.system_params = FlappyParams(
-            pressed_x_vel=2.0, pressed_y_vel=2.0, gamma=9.81
+        self.model = BackwardsFlappyModel(
+            deepcopy(FlappyState.from_properties(x_pos=1.7032, y_pos=2.8791, y_vel=2, pressed=1)),
+            FlappyParams(pressed_x_vel=2.0, pressed_y_vel=2.0, gamma=9.81),
+            FlappyLevel.simple_procedural_gen(seed),
+            t_max,
+            j_max
         )
         self.t_max = t_max
         self.j_max = j_max
         self.step_time = step_time
         self.seed = seed
-        self.level = FlappyLevel.simple_procedural_gen(seed)
 
     def single_run(self, direct_sequence: List[int]) -> HybridResult:
         """Perform a single run with the given parameters and the provided input samples
@@ -60,16 +58,9 @@ class FeasibilityFlappySim:
         input_sequence = time_sequence(direct_sequence, self.step_time)
         # deep copy here because the model can change the state, which can
         # bubble back to the init parameters
-        model = BackwardsFlappyModel(
-            start_state=deepcopy(self.start_state),
-            system_params=self.system_params,
-            t_max=self.t_max,
-            j_max=self.j_max,
-            level=self.level,
-        )
         print(input_sequence)
-        model.input_sequence = input_sequence
-        solver = HyEQSolver(model)
+        self.model.input_sequence = input_sequence
+        solver = HyEQSolver(self.model)
         solution = solver.solve()
 
         # ok, so our hybrid result is in the correct direction, but the times are gonna be
@@ -87,3 +78,11 @@ class FeasibilityFlappySim:
         #       but a solution is valid if the solver didn't hard stop
         #       early (solver.stop)
         return HybridResult(not solver.stop, input_sequence, solution)
+    
+    def feasibility(self) -> List[HybridResult]:
+        """ Do a feasibility analysis of Flappy
+        Returns:
+            List: a list of hybrid results for the number of points we want
+                  to simulate with
+        """
+        return []
