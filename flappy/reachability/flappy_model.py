@@ -35,7 +35,7 @@ class ForwardFlappyModel(HybridModel[FlappyState, FlappyParams]):
         level: FlappyLevel,
         t_max: float = 2.0,
         j_max: int = 8,
-        input_sequence: InputSignal = InputSignal([], []),
+        input_sequence: InputSignal = InputSignal([], []), #type:ignore dataclass not getting picked up right within typechecker
     ):
         """Constructor"""
         super().__init__()

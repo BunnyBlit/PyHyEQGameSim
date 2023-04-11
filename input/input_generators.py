@@ -93,6 +93,24 @@ def btn_1_ordered_sequence_generator(
                 i -= 1
     return None
 
+def btn_1_bounded_sequence_generator(upper_bound:InputSignal, lower_bound:InputSignal, stride:Optional[int]=None):
+    """ We have a signal that's our upper bound and a signal that's our lower bound
+        and we want return the signals in the middle, with gaps of stride along the way.
+        (these are 1 btn sequences, so upper means "pressed the entire time" and lower means "never pressed")
+    Args:
+        upper_bound (InputSignal): the "most pressed" the button will be
+        lower_bound (InputSignal): the "least pressed" the button will be
+    """
+    upper_samples = upper_bound.samples
+    lower_samples = lower_bound.samples
+    n_samples = len(upper_samples)
+    upper_bound_as_int = int(f"0b{''.join([str(digit) for digit in upper_samples])}", 2)
+    lower_bound_as_int = int(f"0b{''.join([str(digit) for digit in lower_samples])}", 2)
+    stride = stride if stride else 1
+    for next_value in range(upper_bound_as_int, lower_bound_as_int, -stride):
+        bin_list = _int_to_bin_list(next_value, n_samples)
+        yield InputSignal(bin_list, upper_bound.times)
+
 
 def time_sequence(input_samples, step_time) -> InputSignal:
     """if we already have a sequence and a step time, allocate samples to
