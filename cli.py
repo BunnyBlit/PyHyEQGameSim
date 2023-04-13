@@ -91,7 +91,6 @@ def single_backwards_flappy_run(args) -> None:
     # derive the end time from the provided samples + sampling rate
     num_samples = len(samples) - 1
     max_t = num_samples * sample_rate
-    print(max_t)
     sim = FeasibilityFlappySim(max_t, max_j, sample_rate, start_state, seed)
     result = sim.single_run(samples)
     print("BIG OLD DATA DUMP INC")
@@ -127,7 +126,26 @@ def find_flappy_reachability_bounds(args) -> None:
     results = sim.reachability_simulation()
     plotter = HybridResultPlotter(results[0] + results[1], sim.model.level)
     plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position")
- 
+
+def find_feasibility_set(args) -> None:
+    """Do a feasibility analysis of Flappy, looking for a set of feasible points
+    """
+    max_t = args.max_time
+    max_j = args.max_jumps
+    sample_rate = args.sample_rate
+    seed = args.seed
+    goal = args.goal
+    stride_points = args.stride_points
+    #TODO: lol som validation maybe
+    with open(args.start_state, 'r') as f:
+        start_state = json.load(f)
+    random.seed(seed)
+
+    sim = FeasibilityFlappySim(max_t, max_j, sample_rate, start_state, seed)
+    solution_set = sim.feasibility_set(goal, stride_points)
+    plotter = HybridResultPlotter(solution_set, sim.model.level)
+    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Feasible Flappy Solutions")
+
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build out a complex tree of subparsers for handling various
         analysis tasks for various models that we have in the repository

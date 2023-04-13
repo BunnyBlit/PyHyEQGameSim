@@ -108,9 +108,6 @@ class HybridSim(Generic[M]):
                     # no input sequence that we can take to get out of this one
                     done = True
             elif solver.stop == False:
-
-                print(solution)
-                import pdb; pdb.set_trace()
                 # This is the upper bound
                 solutions.append(HybridResult(True, input_sequence, solution))
                 done = True

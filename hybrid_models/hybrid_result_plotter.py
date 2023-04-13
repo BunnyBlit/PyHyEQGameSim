@@ -144,7 +144,7 @@ class HybridResultPlotter:
 
         # do the level plotting
         ax = self._plot_level(ax)
-        #import pdb; pdb.set_trace()
+
         plt.show()
 
     def _plot_reachability_run(self, run_idx:int, x_dim_idx:int, y_dim_idx:int, ax, plot_failure=False):
