@@ -1,6 +1,7 @@
 """ Interface for doing a single shot run of a bouncing ball simulation
 """
 from copy import deepcopy
+from typing import Dict
 from hybrid_models.hybrid_simulation import HybridSim
 from ..ball_state import BallState
 from ..ball_params import BallParams
@@ -15,14 +16,15 @@ class FeasibilityBallSim(HybridSim[BackwardBallModel]):
         in-time-feasibility runs
     """
 
-    def __init__(self, t_max: float, j_max:int):
+    def __init__(self, t_max: float, j_max:int, start_params:Dict):
         """set up everything required for a sim run.
         Args:
             t_max (float): see class attribute of the same name
             j_max (int): see class attribute of the same name
+            start_params (Dict): the starting parameters for a bouncing ball
         """
         self.model = BackwardBallModel(
-            BallState.from_properties(y_pos=-0.0091, y_vel=-1.5696),
+            BallState.from_properties(**start_params),
             BallParams(gamma=9.81, restitution_coef=0.5),
             t_max,
             j_max

@@ -2,6 +2,8 @@
 """
 import argparse
 import random
+import json
+from pathlib import Path
 from flappy.reachability.flappy_simulation import ReachabilityFlappySim
 from flappy.feasibility.flappy_simulation import FeasibilityFlappySim
 
@@ -16,7 +18,11 @@ def single_ball_run(args) -> None:
     """
     max_t = args.max_time
     max_j = args.max_jumps
-    sim = ReachabilityBallSim(max_t,  max_j)
+    # TODO: lol some validation maybe?
+    with open(args.start_state, 'r') as f:
+        start_state = json.load(f)
+
+    sim = ReachabilityBallSim(max_t,  max_j, start_state)
     result = sim.single_run()
     print("BIG OLD DATA DUMP INC")
     print(result)
@@ -30,7 +36,11 @@ def single_backwards_ball_run(args) -> None:
     """
     max_t = args.max_time
     max_j = args.max_jumps
-    sim = FeasibilityBallSim(max_t, max_j)
+    # TODO: lol some validation maybe?
+    with open(args.start_state, 'r') as f:
+        start_state = json.load(f)
+
+    sim = FeasibilityBallSim(max_t, max_j, start_state)
     result = sim.single_run()
     print("BIG OLD DATA DUMP INC")
     print(result)
@@ -46,19 +56,22 @@ def single_flappy_run(args) -> None:
     samples = args.samples
     seed = args.seed
     max_j = args.max_jumps
+    # TODO: lol some validation maybe?
+    with open(args.start_state, 'r') as f:
+        start_state = json.load(f)
 
     random.seed(seed)
     # derive the end time from the provided samples + sampling rate
     num_samples = len(samples) - 1
     max_t = num_samples * sample_rate
 
-    sim = ReachabilityFlappySim(max_t, max_j, sample_rate, seed)
+    sim = ReachabilityFlappySim(max_t, max_j, sample_rate, start_state, seed)
     result = sim.single_run(samples)
     print("BIG OLD DATA DUMP INC")
     print(result)
     plotter = HybridResultPlotter([result], sim.model.level)
-    plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Forward Flappy Breakdown")
-    #plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    #plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Forward Flappy Breakdown")
+    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
     #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def single_backwards_flappy_run(args) -> None:
@@ -70,19 +83,22 @@ def single_backwards_flappy_run(args) -> None:
     samples = args.samples
     seed = args.seed
     max_j = args.max_jumps
+     # TODO: lol some validation maybe?
+    with open(args.start_state, 'r') as f:
+        start_state = json.load(f)
 
     random.seed(seed)
     # derive the end time from the provided samples + sampling rate
     num_samples = len(samples) - 1
     max_t = num_samples * sample_rate
     print(max_t)
-    sim = FeasibilityFlappySim(max_t, max_j, sample_rate, seed)
+    sim = FeasibilityFlappySim(max_t, max_j, sample_rate, start_state, seed)
     result = sim.single_run(samples)
     print("BIG OLD DATA DUMP INC")
     print(result)
     plotter = HybridResultPlotter([result], sim.model.level)
-    plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Backward Flappy Breakdown")
-    #plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    #plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Backward Flappy Breakdown")
+    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
     #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def find_flappy_reachability_bounds(args) -> None:
@@ -94,6 +110,9 @@ def find_flappy_reachability_bounds(args) -> None:
     num_samples = args.num_samples
     sample_rate = args.sample_rate
     seed = args.seed
+    # TODO: lol some validation maybe?
+    with open(args.start_state, 'r') as f:
+        start_state = json.load(f)
 
     random.seed(seed)
     # handle invalid args
@@ -104,11 +123,11 @@ def find_flappy_reachability_bounds(args) -> None:
     if num_samples:
         max_t = num_samples * sample_rate
 
-    sim = ReachabilityFlappySim(max_t, max_j, sample_rate, seed)
+    sim = ReachabilityFlappySim(max_t, max_j, sample_rate, start_state, seed)
     results = sim.reachability_simulation()
     plotter = HybridResultPlotter(results[0] + results[1], sim.model.level)
     plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position")
-    
+ 
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build out a complex tree of subparsers for handling various
         analysis tasks for various models that we have in the repository
@@ -128,6 +147,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
     single_ball_parser = ball_analysis_parsers.add_parser("single", help="For doing single runs")
     _add_max_time_argument(single_ball_parser)
     _add_max_jumps_argument(single_ball_parser)
+    _add_start_state_argument(single_ball_parser)
+
     # backwards ball time
     backwards_ball_parser = model_parsers.add_parser("backwards_ball", help="For simulating a simple backwards-in-time Bouncing Ball example!")
     backwards_ball_analysis_parsers = backwards_ball_parser.add_subparsers(
@@ -136,7 +157,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
     single_backwards_ball_parser = backwards_ball_analysis_parsers.add_parser("single", help="For doing single runs")
     _add_max_time_argument(single_backwards_ball_parser)
     _add_max_jumps_argument(single_backwards_ball_parser)
- 
+    _add_start_state_argument(single_backwards_ball_parser)
+
     # flappy time
     flappy_parser = model_parsers.add_parser("flappy", help="For simulating Flappy Bird!")
     flappy_analysis_parsers = flappy_parser.add_subparsers(
@@ -148,6 +170,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     _add_seed(single_flappy_parser)
     _add_max_jumps_argument(single_flappy_parser)
     _add_raw_samples_argument(single_flappy_parser)
+    _add_start_state_argument(single_flappy_parser)
 
     # reachability analysis
     reachability_flappy_parser = flappy_analysis_parsers.add_parser(
@@ -156,6 +179,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     _add_sample_rate(reachability_flappy_parser)
     _add_seed(reachability_flappy_parser)
     _add_max_jumps_argument(reachability_flappy_parser)
+    _add_start_state_argument(reachability_flappy_parser)
 
     bounds_number_of_samples_group = reachability_flappy_parser.add_mutually_exclusive_group()
     _add_max_time_argument(bounds_number_of_samples_group)
@@ -172,6 +196,7 @@ def build_cli_parser() -> argparse.ArgumentParser:
     _add_seed(single_backwards_flappy_parser)
     _add_max_jumps_argument(single_backwards_flappy_parser)
     _add_raw_samples_argument(single_backwards_flappy_parser)
+    _add_start_state_argument(single_backwards_flappy_parser)
 
     # single run of bouncing ball
     single_ball_parser.set_defaults(func=single_ball_run)
@@ -257,6 +282,16 @@ def _add_raw_samples_argument(parse_obj):
         type=int,
         nargs="*",
         help="Specify a list of sample values directly" 
+    )
+
+def _add_start_state_argument(parse_obj):
+    """ Add the ability to specify the start state to the parser
+    """
+    parse_obj.add_argument(
+        "-f",
+        "--start_state",
+        type=Path,
+        help="specify the path to a starting state for this model",
     )
 
 if "__main__" == __name__:

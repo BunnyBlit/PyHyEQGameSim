@@ -2,7 +2,7 @@
 """
 import time
 from copy import deepcopy
-from typing import List, Tuple, Generator, Optional
+from typing import List, Tuple, Dict, Optional
 from .flappy_model import ForwardFlappyModel
 from ..flappy_state import FlappyState
 from ..flappy_level import FlappyLevel
@@ -26,7 +26,7 @@ class ReachabilityFlappySim(HybridSim[ForwardFlappyModel]):
     step_time: float
     level: FlappyLevel
 
-    def __init__(self, t_max: float, j_max: int, step_time: float, seed: Optional[int] = None):
+    def __init__(self, t_max: float, j_max: int, step_time: float, start_params:Dict, seed: Optional[int] = None):
         """set up everything required for a sim run.
         Args:
             t_max (float): see class attribute of the same name
@@ -35,7 +35,7 @@ class ReachabilityFlappySim(HybridSim[ForwardFlappyModel]):
             seed (Optional[int]): see class attribute of the same name
         """
         self.model = ForwardFlappyModel(
-            deepcopy(FlappyState.from_properties(x_pos=0.1, y_pos=2.0, y_vel=0.1, pressed=0)),
+            deepcopy(FlappyState.from_properties(**start_params)),
             FlappyParams(pressed_x_vel=2.0, pressed_y_vel=2.0, gamma=9.81),
             FlappyLevel.simple_procedural_gen(seed),
             t_max,

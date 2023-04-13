@@ -2,7 +2,7 @@
 """
 import time
 from copy import deepcopy
-from typing import List, Tuple, Generator, Optional
+from typing import List, Tuple, Dict, Optional
 from hybrid_models.hybrid_simulation import HybridSim
 from .flappy_model import BackwardsFlappyModel
 from ..flappy_state import FlappyState
@@ -20,7 +20,7 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
        t_max (float): max time for a sim run. If we get to t_max, we're successful
        j_max (int): max number of jumps for the sim to run. If we get to j_max, we're successful
        step_time (float): how far apart each sample of the input signal is
-       start_state (FlappyState): starting state of flappy the bird
+       start_params (Dict): starting state of flappy the bird
        level (FlappyLevel): level to simulate on
        seed (int): seed to use for level generation
     """
@@ -28,7 +28,7 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
     level: FlappyLevel
     seed: Optional[int]
 
-    def __init__(self, t_max: float, j_max: int, step_time: float, seed: Optional[int] = None):
+    def __init__(self, t_max: float, j_max: int, step_time: float, start_params: Dict, seed: Optional[int] = None):
         """set up everything required for a sim run.
         Args:
             t_max (float): see class attribute of the same name
@@ -37,7 +37,7 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             seed (Optional[int]): see class attribute of the same name
         """
         self.model = BackwardsFlappyModel(
-            deepcopy(FlappyState.from_properties(x_pos=1.7032, y_pos=2.8791, y_vel=2, pressed=1)),
+            deepcopy(FlappyState.from_properties(**start_params)),
             FlappyParams(pressed_x_vel=2.0, pressed_y_vel=2.0, gamma=9.81),
             FlappyLevel.simple_procedural_gen(seed),
             t_max,
