@@ -216,6 +216,16 @@ def build_cli_parser() -> argparse.ArgumentParser:
     _add_raw_samples_argument(single_backwards_flappy_parser)
     _add_start_state_argument(single_backwards_flappy_parser)
 
+    # feasibility 
+    feasibility_flappy_parser = backwards_flappy_analysis_parsers.add_parser("feasibility", help="For finding feasibility sets") 
+    _add_sample_rate(feasibility_flappy_parser)
+    _add_seed(feasibility_flappy_parser)
+    _add_start_state_argument(feasibility_flappy_parser)
+    _add_max_time_argument(feasibility_flappy_parser)
+    _add_max_jumps_argument(feasibility_flappy_parser) 
+    _add_goal_argument(feasibility_flappy_parser)
+    _add_stride_points_argument(feasibility_flappy_parser)
+
     # single run of bouncing ball
     single_ball_parser.set_defaults(func=single_ball_run)
     # single run of backwards bouncing ball
@@ -226,6 +236,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
     reachability_flappy_parser.set_defaults(func=find_flappy_reachability_bounds)
     # single run of backwards flappy
     single_backwards_flappy_parser.set_defaults(func=single_backwards_flappy_run)
+    # feasibility run
+    feasibility_flappy_parser.set_defaults(func=find_feasibility_set)
 
     return parser
 
@@ -310,6 +322,27 @@ def _add_start_state_argument(parse_obj):
         "--start_state",
         type=Path,
         help="specify the path to a starting state for this model",
+    )
+
+def _add_goal_argument(parse_obj):
+    """ Add a goal argument
+        TODO: this should be customizable to _any_ state parameter?
+    """
+    parse_obj.add_argument(
+        "-g",
+        "--goal",
+        type=float,
+        help="Specify an X axis goal to simulate backwards to!"
+    )
+
+def _add_stride_points_argument(parse_obj):
+    """ Add stride points argument (number of points to use to look backwards with)
+    """
+    parse_obj.add_argument(
+        "-p",
+        "--stride_points",
+        type=int,
+        help="Number of points to use per feasibility stride"
     )
 
 if "__main__" == __name__:

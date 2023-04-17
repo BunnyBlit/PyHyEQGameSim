@@ -61,7 +61,6 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
 
         max_sample_time = self.input_sequence.times[-1]
         flipped_sample_time = abs(time - max_sample_time) if time < max_sample_time else 0.0 # need to ceiling this signal
-        print(f"Get Input Time: {flipped_sample_time:0.4f}")
         # input_sequence is sorted according to time
         # FIXME: which means there is a better way to do this
         best_sample_idx = -1
@@ -94,15 +93,15 @@ class BackwardsFlappyModel(HybridModel[FlappyState, FlappyParams]):
         
         max_sample_time = self.input_sequence.times[-1]
         flipped_time = abs(time - max_sample_time) if time < max_sample_time else 0.0 # need to ceiling this signal
-
         nearest_sample_idx = [idx for idx, sample_value in enumerate(self.input_sequence) if cast(Tuple[float, float | int], sample_value)[0] == near_sample_time][0]
         falling_samples = []
         # FIXME: I don't think I'm handling strides correctly
-        for signal in self.input_sequence[:nearest_sample_idx][::-1]:
+        for signal in self.input_sequence[:nearest_sample_idx + 1][::-1]:
             # TODO: see above, I can't figure out a good __getitem__ pattern
             #       so we have this unholy, slow hack instead
             signal = cast(Tuple[float, float | int], signal)
             time, sample_value = signal
+        #    print(f"Checking: {time:0.4f}\t{sample_value:0.4f}")
             if sample_value == 0:
                 falling_samples.append(signal)
             else:

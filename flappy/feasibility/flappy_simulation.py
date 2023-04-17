@@ -129,7 +129,6 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             self.model.start_state = last_solve_state
             found_solutions += self.feasibility_set(goal_x_pos, points_per_stride)
 
-
         return found_solutions
     
     def _get_input_sequence_bounds(self) -> Tuple[Optional[InputSignal], Optional[InputSignal]]:
@@ -151,13 +150,14 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             self.t_max, self.step_time, "asc"
         )
         lower_solutions = self._find_reachability_bound_given_order(lower_input_gen)
-        lower_bound = [solution for solution in upper_solutions if solution.successful == True]
+        lower_bound = [solution for solution in lower_solutions if solution.successful == True]
         # FIXME jankerific unpack
         if len(lower_bound) > 0:
             lower_bound = lower_bound[0]
         else:
             print("Unable to find a lower bound, returning an empty set")
             return None, None
-        
+
+        print("RETURNING FROM BOUNDS CHECK") 
         return upper_bound.input_sequence, lower_bound.input_sequence
 

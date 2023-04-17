@@ -9,6 +9,8 @@ from typing import Generator, Optional, List, Generic, TypeVar
 from hybrid_models.hybrid_solver import HyEQSolver
 from .hybrid_model import HybridModel, T, G
 from .hybrid_result import HybridResult
+from .hybrid_point import HybridPoint
+
 from input.input_signal import InputSignal
 L = TypeVar("L") # level type var
 M = TypeVar("M", bound=HybridModel) # model type var
@@ -83,10 +85,16 @@ class HybridSim(Generic[M]):
             solver = HyEQSolver(self.model)
             solution = solver.solve()
             solve_stop_time = time.time()
-            # FIXME: might want to add this explicitly to a solution,
-            #       but a solution is valid if the solver didn't hard stop
-            #       early
-            if solver.stop == True:
+            if not solution:
+                print("Got a completely blank solution from the solver")
+                print("May mean an invalid start state?")
+                # solution is the empty array. I think this means that we shouldn't
+                # even try other input sequences?
+                done = True
+                # the solution is just a single failed point at the start state
+                solutions.append(HybridResult(False, input_sequence, [HybridPoint(0.0, self.model.start_state, 0)]))
+            elif solver.stop == True:
+                # normal failed run path
                 solutions.append(HybridResult(False, input_sequence, solution))
                 # find the index of the last relevant input sample
                 last_sim_time = solution[-1].time
@@ -117,7 +125,7 @@ class HybridSim(Generic[M]):
                     f"Time spent solving: {solve_stop_time - single_run_start:0.02f}s"
                 )
                 print(f"Time spent skipping: {skip_stop_time - solve_stop_time:0.02f}s")
-        if solutions[-1].successful == True:
+        if solutions and solutions[-1].successful == True:
             print("...Valid solution found!")
             print(f"{solutions[-1].input_sequence.samples}")  # type:ignore
         return solutions

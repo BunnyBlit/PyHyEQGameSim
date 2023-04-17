@@ -140,7 +140,7 @@ class HybridResultPlotter:
         ax.set_ylabel(y_label)
         # do all the solution plotting
         for run_idx in range(0, len(self.data)):
-            ax = self._plot_reachability_run(run_idx, x_dim_idx, y_dim_idx, ax, plot_failure=True)
+            ax = self._plot_reachability_run(run_idx, x_dim_idx, y_dim_idx, ax)
 
         # do the level plotting
         ax = self._plot_level(ax)
