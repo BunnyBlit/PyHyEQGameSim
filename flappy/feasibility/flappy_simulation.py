@@ -80,7 +80,7 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
         #       early (solver.stop)
         return HybridResult(not solver.stop, input_sequence, solution)
     
-    def feasibility_set(self, goal_x_pos, points_per_stride) -> List[HybridResult]:
+    def feasibility_set(self, start_state, goal_x_pos, points_per_stride) -> List[HybridResult]:
         """ Do a feasibility analysis of Flappy
         TODO: this function is written as _total_ side effect while doing the recursion
               that's bad! We prefer pure functions!
@@ -94,13 +94,9 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
         """
         if self.model.start_state.x_pos <= goal_x_pos:
             return []
-
+        
+        self.model.start_state = start_state
         upper_bound, lower_bound = self._get_input_sequence_bounds()
-        print(f"Upper Bound:")
-        print(upper_bound)
-        print(f"Lower Bound:")
-        print(lower_bound)
-
         if upper_bound is None or lower_bound is None:
             return []
         
@@ -108,8 +104,11 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
         gen = btn_1_bounded_sequence_generator(upper_bound, lower_bound, points_per_stride)
         for input_sequence in gen:
             self.model.input_sequence = input_sequence
+            print(f"Model start state while finding points: {self.model.start_state}")
             solver = HyEQSolver(self.model)
             solution = solver.solve()
+            if not solution:
+                return []
             # NOTE: time on these solutions is fucky-wucky
             # .     basically: because we're going back in steps
             #       we have no idea where the first time point is
@@ -126,9 +125,11 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
                     solution[idx].time = new_time
                     solution[idx].jumps = new_jumps
             found_solutions.append(HybridResult(not solver.stop, input_sequence, solution))
-            # FIXME this sucks. this being entirely side effect is bad
-            self.model.start_state = last_solve_state
-            found_solutions += self.feasibility_set(goal_x_pos, points_per_stride)
+            # FIXME this sucks, memorizing around a function call sucks
+            #       there has got to be a better way to set up this recursion
+            restore_state = self.model.start_state
+            found_solutions += self.feasibility_set(last_solve_state, goal_x_pos, points_per_stride)
+            self.model.start_state = restore_state
 
         return found_solutions
 
@@ -167,15 +168,11 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
                     None
                 )  # explicit about getting the first element from the generator
             self.model.input_sequence = input_sequence #type: ignore models that make it this far have input sequences
-            print(
-                f"Simulating: {''.join([str(sample) for sample in self.model.input_sequence.samples])}" #type: ignore models that make it this far have input sequences
-            )
-            print(
-                f"Start State: {self.model.start_state}"
-            )
+            #print(
+            #    f"Simulating: {''.join([str(sample) for sample in self.model.input_sequence.samples])}" #type: ignore models that make it this far have input sequences
+            #)
             solver = HyEQSolver(self.model)
             solution = solver.solve()
-            solve_stop_time = time.time()
             if not solution:
                 print("Got a completely blank solution from the solver")
                 print("May mean an invalid start state?")
@@ -197,10 +194,10 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
                 # This is the upper bound
                 solutions.append(HybridResult(True, input_sequence, solution))
                 done = True
-            if not done:
-                print(
-                    f"Time spent solving: {solve_stop_time - single_run_start:0.02f}s"
-                )
+            #if not done:
+            #    print(
+            #        f"Time spent solving: {solve_stop_time - single_run_start:0.02f}s"
+            #    )
         if solutions and solutions[-1].successful == True:
             print("...Valid solution found!")
             print(f"{solutions[-1].input_sequence.samples}")  # type:ignore

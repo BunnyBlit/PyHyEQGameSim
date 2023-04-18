@@ -6,6 +6,9 @@
 * * As it stands, going backwards will always have an initial value problem-- for flappers, we can't disambiguate between if the initial velocity starting a fall was 2 or the start state velocity,
 we don't know when we started!
 * * * we could provide like a window of sorts, doing something like local vs world time
+* * feasibility sucks
+* * * need some faster way to handle input-- currently not skipping anything
+* * * even under very tight time windows and heavy sample bias, still really hard to find anything worth while :/
 2. Cleanup code for Github + Readme
 3. Take another stab at CSV-file based serialization / deserialization of sims
 4. Take start state from config file or CLI
