@@ -3,6 +3,7 @@
 import time
 from copy import deepcopy
 from typing import List, Tuple, Dict, Optional
+from hybrid_models.hybrid_point import HybridPoint
 from hybrid_models.hybrid_simulation import HybridSim
 from .flappy_model import BackwardsFlappyModel
 from ..flappy_state import FlappyState
@@ -130,7 +131,82 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             found_solutions += self.feasibility_set(goal_x_pos, points_per_stride)
 
         return found_solutions
-    
+
+    def _plot_input_sequence_bounds(self) -> Tuple[List[HybridResult], List[HybridResult]]:
+        """ Hack to just check the bounds that we're calculating
+        """
+        # upper bound calc
+        upper_input_gen = btn_1_ordered_sequence_generator(
+            self.t_max, self.step_time, "dsc"
+        )
+        upper_solutions = self._find_reachability_bound_given_order(upper_input_gen)
+        # lower bound calc
+        lower_input_gen = btn_1_ordered_sequence_generator(
+            self.t_max, self.step_time, "asc"
+        )
+        lower_solutions = self._find_reachability_bound_given_order(lower_input_gen)
+        return (upper_solutions, lower_solutions)
+
+
+    def _find_reachability_bound_given_order(self, input_generator) -> List[HybridResult]:
+        """ raw iterative method. There might be a away to speed this up but /shrug
+        """
+        solutions: List[HybridResult] = []
+        done = False
+        input_sequence = None
+        # this algorithm only makes sense for models with an input sequence
+        if not hasattr(self.model, 'input_sequence'):
+            raise RuntimeError("Provided model does not have an input sequence")
+        # deep copy here because the model can change the state, which can
+        # bubble back to the init object
+        while not done:
+            # get an input sequence if we haven't gotten one yet
+            single_run_start = time.time()
+            if not input_sequence:
+                input_sequence = input_generator.send(
+                    None
+                )  # explicit about getting the first element from the generator
+            self.model.input_sequence = input_sequence #type: ignore models that make it this far have input sequences
+            print(
+                f"Simulating: {''.join([str(sample) for sample in self.model.input_sequence.samples])}" #type: ignore models that make it this far have input sequences
+            )
+            print(
+                f"Start State: {self.model.start_state}"
+            )
+            solver = HyEQSolver(self.model)
+            solution = solver.solve()
+            solve_stop_time = time.time()
+            if not solution:
+                print("Got a completely blank solution from the solver")
+                print("May mean an invalid start state?")
+                # solution is the empty array. I think this means that we shouldn't
+                # even try other input sequences?
+                done = True
+                # the solution is just a single failed point at the start state
+                solutions.append(HybridResult(False, input_sequence, [HybridPoint(0.0, self.model.start_state, 0)]))
+            elif solver.stop == True:
+                # normal failed run path
+                solutions.append(HybridResult(False, input_sequence, solution))
+                try:
+                    input_sequence = input_generator.send(None)
+                except StopIteration:
+                    # We're in a state where we can't actually keep going-- we're invalid, there's
+                    # no input sequence that we can take to get out of this one
+                    done = True
+            elif solver.stop == False:
+                # This is the upper bound
+                solutions.append(HybridResult(True, input_sequence, solution))
+                done = True
+            if not done:
+                print(
+                    f"Time spent solving: {solve_stop_time - single_run_start:0.02f}s"
+                )
+        if solutions and solutions[-1].successful == True:
+            print("...Valid solution found!")
+            print(f"{solutions[-1].input_sequence.samples}")  # type:ignore
+        return solutions
+
+
     def _get_input_sequence_bounds(self) -> Tuple[Optional[InputSignal], Optional[InputSignal]]:
         """ Get upper and lower bounds on an input sequence for flappers
         """

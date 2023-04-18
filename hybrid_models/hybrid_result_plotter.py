@@ -147,7 +147,7 @@ class HybridResultPlotter:
 
         plt.show()
 
-    def _plot_reachability_run(self, run_idx:int, x_dim_idx:int, y_dim_idx:int, ax, plot_failure=False):
+    def _plot_reachability_run(self, run_idx:int, x_dim_idx:int, y_dim_idx:int, ax, plot_failure=True):
         """ Plot the results of a run from a reachability simulation. Assumes self.data came from such
             a run.
         Args:
