@@ -55,7 +55,10 @@ class HyEQSolver(Generic[T]):
         self.atol = atol
 
         # solver state
-        self.cur_state = HybridPoint(0.0, self.model.start_state, 0)
+        # FIXME: the solver messes with cur_state, which can eventually bubble back
+        # .      to the model start state with a weak reference
+        #        I don't love this copy op
+        self.cur_state = HybridPoint(0.0, deepcopy(self.model.start_state), 0)
         self.stop = False
 
         # solver event functions

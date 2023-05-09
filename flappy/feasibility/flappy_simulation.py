@@ -92,15 +92,19 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             List: a list of hybrid results for the number of points we want
                   to simulate with
         """
-        if self.model.start_state.x_pos <= goal_x_pos:
-            return []
-        
+        # update model state
         self.model.start_state = start_state
+
+        if self.model.start_state.x_pos <= goal_x_pos:
+            print(f"... found a good solution!")
+            return []
+ 
+        # just going to try and return all the bounds checks
         upper_bound, lower_bound = self._get_input_sequence_bounds()
         if upper_bound is None or lower_bound is None:
             return []
-        
-        found_solutions: List[HybridResult] = []
+
+        found_solutions: List[HybridResult] = []        
         gen = btn_1_bounded_sequence_generator(upper_bound, lower_bound, points_per_stride)
         for input_sequence in gen:
             self.model.input_sequence = input_sequence
@@ -133,9 +137,48 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
 
         return found_solutions
 
+    def _plot_bounds_recursively(self, start_state, goal_x_pos, points_per_stride) -> List[HybridResult]:
+        """ Utility function to plot just the bounds of a backwards flappy solution
+        """
+        # FIXME DELETE EVENTUALLY
+        self.model.start_state = start_state
+
+        if self.model.start_state.x_pos <= goal_x_pos:
+            #print(f"... found a good solution!")
+            return []
+
+        upper_solutions, lower_solutions = self._plot_input_sequence_bounds()
+        upper_bound = [solution for solution in upper_solutions if solution.successful == True]
+        lower_bound = [solution for solution in lower_solutions if solution.successful == True]
+        
+        if not upper_bound or not lower_bound:
+            return []
+
+        # jankerific unpack operation        
+        found_bounds:List[HybridResult] = [upper_bound[0], lower_bound[0]]
+        upper_bound_input = upper_bound[0].input_sequence         
+        lower_bound_input = lower_bound[0].input_sequence
+        print(f"Create a sequence generator from {upper_bound_input.samples} --> {lower_bound_input.samples}")
+        gen = btn_1_bounded_sequence_generator(upper_bound_input, lower_bound_input, points_per_stride) #type: ignore it'll be there
+        for input_sequence in gen:
+            self.model.input_sequence = input_sequence
+            #print(f"Model start state while finding points: {self.model.start_state}")
+            solver = HyEQSolver(self.model)
+            solution = solver.solve()
+            if not solution:
+                return []
+            
+            last_solve_state = solution[-1].state
+            restore_state = self.model.start_state
+            found_bounds += self._plot_bounds_recursively(last_solve_state, goal_x_pos, points_per_stride)
+            self.model.start_state = restore_state
+
+        return found_bounds
+
     def _plot_input_sequence_bounds(self) -> Tuple[List[HybridResult], List[HybridResult]]:
         """ Hack to just check the bounds that we're calculating
         """
+        # TODO DELETE EVENTUALLY
         # upper bound calc
         upper_input_gen = btn_1_ordered_sequence_generator(
             self.t_max, self.step_time, "dsc"
@@ -158,8 +201,7 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
         # this algorithm only makes sense for models with an input sequence
         if not hasattr(self.model, 'input_sequence'):
             raise RuntimeError("Provided model does not have an input sequence")
-        # deep copy here because the model can change the state, which can
-        # bubble back to the init object
+    
         while not done:
             # get an input sequence if we haven't gotten one yet
             single_run_start = time.time()
@@ -199,8 +241,9 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             #        f"Time spent solving: {solve_stop_time - single_run_start:0.02f}s"
             #    )
         if solutions and solutions[-1].successful == True:
-            print("...Valid solution found!")
-            print(f"{solutions[-1].input_sequence.samples}")  # type:ignore
+            pass
+            #print("...Valid solution found!")
+            #print(f"{solutions[-1].input_sequence.samples}")  # type:ignore
         return solutions
 
 
@@ -230,7 +273,6 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
         else:
             print("Unable to find a lower bound, returning an empty set")
             return None, None
-
-        print("RETURNING FROM BOUNDS CHECK") 
+ 
         return upper_bound.input_sequence, lower_bound.input_sequence
 

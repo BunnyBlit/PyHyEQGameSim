@@ -146,9 +146,9 @@ def find_feasibility_set(args) -> None:
     #plotter = HybridResultPlotter(results[0] + results[1], sim.model.level)
     #plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position")
  
-    solution_set = sim.feasibility_set(sim.model.start_state, goal, stride_points)
+    solution_set = sim._plot_bounds_recursively(sim.model.start_state, goal, stride_points)
     plotter = HybridResultPlotter(solution_set, sim.model.level)
-    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Feasible Flappy Solutions")
+    plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Feasible Flappy Solutions")
 
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build out a complex tree of subparsers for handling various

@@ -93,24 +93,33 @@ def btn_1_ordered_sequence_generator(
                 i -= 1
     return None
 
-def btn_1_bounded_sequence_generator(upper_bound:InputSignal, lower_bound:InputSignal, stride:Optional[int]=None):
+def btn_1_bounded_sequence_generator(upper_bound:InputSignal, lower_bound:InputSignal, num_results:Optional[int]=None):
     """ We have a signal that's our upper bound and a signal that's our lower bound
         and we want return the signals in the middle, with gaps of stride along the way.
         (these are 1 btn sequences, so upper means "pressed the entire time" and lower means "never pressed")
     Args:
         upper_bound (InputSignal): the "most pressed" the button will be
         lower_bound (InputSignal): the "least pressed" the button will be
+        num_results (int [optional]): the number of results to use, we will return n results, including the upper and lower bound
+                                      needs to be at least 2
     """
+    #print(f"Bounds:\n{upper_bound.samples}\n{lower_bound.samples}")
+    # FIXME: divisor math here is annoying and I need to figure it out at some point.
     upper_samples = upper_bound.samples
     lower_samples = lower_bound.samples
     n_samples = len(upper_samples)
     upper_bound_as_int = int(f"0b{''.join([str(digit) for digit in upper_samples])}", 2)
     lower_bound_as_int = int(f"0b{''.join([str(digit) for digit in lower_samples])}", 2)
-    stride = stride if stride else 1
+    # figure out what were dividing our range by (number of results we should return)
+    divisor = num_results if num_results else (upper_bound_as_int - lower_bound_as_int)
+    stride = (upper_bound_as_int - lower_bound_as_int) // divisor
     for next_value in range(upper_bound_as_int, lower_bound_as_int, -stride):
         bin_list = _int_to_bin_list(next_value, n_samples)
-        yield InputSignal(bin_list, upper_bound.times)
-
+        #print(f"Yielding: {bin_list}")
+        yield InputSignal(bin_list, upper_bound.times) 
+    # and one more time for the lower bound. This means we don't exactly span stride values
+    # but it's more complicated to get precise here and we don't need to be
+    yield InputSignal(_int_to_bin_list(lower_bound_as_int, n_samples), upper_bound.times)
 
 def time_sequence(input_samples, step_time) -> InputSignal:
     """if we already have a sequence and a step time, allocate samples to
