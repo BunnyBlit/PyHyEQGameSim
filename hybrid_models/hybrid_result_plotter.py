@@ -92,6 +92,54 @@ class HybridResultPlotter:
         plt.show()
         #fig.show()
         #  
+    def plot_state_over_state_unique(self, x_dim_idx:int, y_dim_idx:int, x_label:str, y_label:str, chart_label:str):
+        """Plot two aspects of state against each other. Plots every result in self.data on the same graph.
+           Color by uniqueness
+        Args:
+            x_dim_idx (int): which dimension from state to graph on the x axis
+            y_dim_idx (int): which dimension from state to graph on the y axis
+            x_label (str): x-axis label
+            y_label (str): y-axis label
+        """
+        fig = plt.figure(layout="constrained")
+        fig.suptitle(chart_label)
+        ax = fig.add_subplot() #type: ignore
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+        # TODO: unique colors
+        #     it'd be neat to get like, generation colors here
+        # .   but we don't really have a data channel for that
+        # trace colors?
+        for sol_idx, solution in enumerate(self.data):
+            data_to_plot = solution.sim_result
+            x_data = [float(point.state[x_dim_idx]) for point in data_to_plot]
+            y_data = [float(point.state[y_dim_idx]) for point in data_to_plot]
+            if solution.successful:
+                ax.plot(x_data, y_data, "-", color="blue", label="possible")
+            else:
+                ax.plot(x_data, y_data, '--', color="red", label="impossible")
+
+        handles, labels = ax.get_legend_handles_labels()
+        handles_to_graph = []
+        labels_to_use = []
+        try:
+            first_safe_idx = labels.index("possible")
+            handles_to_graph.append(handles[first_safe_idx])
+            labels_to_use.append(labels[first_safe_idx])
+        except ValueError:
+            pass
+
+        try:
+            first_death_idx = labels.index("impossible")
+            handles_to_graph.append(handles[first_death_idx])
+            labels_to_use.append(labels[first_death_idx])
+        except ValueError:
+            pass
+
+        ax.legend(handles_to_graph, labels_to_use)
+        ax = self._plot_level(ax)
+        plt.show()
+
     def plot_state_over_state(self, x_dim_idx:int, y_dim_idx:int, x_label:str, y_label:str, chart_label:str):
         """Plot two aspects of state against each other. Plots every result in self.data on the same graph.
            Colors by jumps

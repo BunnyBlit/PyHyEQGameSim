@@ -80,11 +80,12 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
         #       early (solver.stop)
         return HybridResult(not solver.stop, input_sequence, solution)
     
-    def feasibility_set(self, start_state, goal_x_pos, points_per_stride) -> List[HybridResult]:
+    def feasibility_set(self, start_state:FlappyState, goal_x_pos, points_per_stride, depth:int = 0) -> List[HybridResult]:
         """ Do a feasibility analysis of Flappy
         TODO: this function is written as _total_ side effect while doing the recursion
               that's bad! We prefer pure functions!
         Args:
+            start_state (FlappyState): the state to start this round of feasability ffinding at
             goal_x_pos (float): the x position we want to eventually get to
             points_per_stride (int): number of valid solutions to use per backwards stride
                                      -1 for all of them
@@ -92,23 +93,25 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             List: a list of hybrid results for the number of points we want
                   to simulate with
         """
+        print("".join("...." * depth) + f"at depth: {depth}")
+        depth += 1
         # update model state
         self.model.start_state = start_state
 
         if self.model.start_state.x_pos <= goal_x_pos:
-            print(f"... found a good solution!")
+            print("".join("...." * depth) + f"found a good solution!")
             return []
  
         # just going to try and return all the bounds checks
         upper_bound, lower_bound = self._get_input_sequence_bounds()
         if upper_bound is None or lower_bound is None:
+            print("".join("...." * depth) + f"could not generate bounds")
             return []
 
         found_solutions: List[HybridResult] = []        
         gen = btn_1_bounded_sequence_generator(upper_bound, lower_bound, points_per_stride)
         for input_sequence in gen:
             self.model.input_sequence = input_sequence
-            print(f"Model start state while finding points: {self.model.start_state}")
             solver = HyEQSolver(self.model)
             solution = solver.solve()
             if not solution:
@@ -132,7 +135,8 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             # FIXME this sucks, memorizing around a function call sucks
             #       there has got to be a better way to set up this recursion
             restore_state = self.model.start_state
-            found_solutions += self.feasibility_set(last_solve_state, goal_x_pos, points_per_stride)
+            print("".join("...." * depth) + f"going deeper")
+            found_solutions += self.feasibility_set(last_solve_state, goal_x_pos, points_per_stride, depth)
             self.model.start_state = restore_state
 
         return found_solutions

@@ -142,13 +142,14 @@ def find_feasibility_set(args) -> None:
     random.seed(seed)
 
     sim = FeasibilityFlappySim(max_t, max_j, sample_rate, start_state, seed)
+    results = sim.feasibility_set(sim.model.start_state, goal, stride_points)
     #results = sim._plot_input_sequence_bounds()
-    #plotter = HybridResultPlotter(results[0] + results[1], sim.model.level)
-    #plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    plotter = HybridResultPlotter(results, sim.model.level)
+    plotter.plot_state_over_state_unique(0, 1, "X Pos", "Y Pos", "Flappy Position")
  
-    solution_set = sim._plot_bounds_recursively(sim.model.start_state, goal, stride_points)
-    plotter = HybridResultPlotter(solution_set, sim.model.level)
-    plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Feasible Flappy Solutions")
+    #solution_set = sim._plot_bounds_recursively(sim.model.start_state, goal, stride_points)
+    #plotter = HybridResultPlotter(solution_set, sim.model.level)
+    #plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Feasible Flappy Solutions")
 
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build out a complex tree of subparsers for handling various

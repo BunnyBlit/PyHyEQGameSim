@@ -34,8 +34,8 @@ def btn_1_ordered_sequence_generator(
 
     # rad, ok, we have times
     n_samples = len(sample_times)
-    print(f"Number of input samples: {n_samples}")
-    print(f"Number of unique sequences over input {2**n_samples}")
+    #print(f"Number of input samples: {n_samples}")
+    #print(f"Number of unique sequences over input {2**n_samples}")
     if direction == "asc":
         i = 0
         while i < 2**n_samples:
@@ -110,9 +110,12 @@ def btn_1_bounded_sequence_generator(upper_bound:InputSignal, lower_bound:InputS
     n_samples = len(upper_samples)
     upper_bound_as_int = int(f"0b{''.join([str(digit) for digit in upper_samples])}", 2)
     lower_bound_as_int = int(f"0b{''.join([str(digit) for digit in lower_samples])}", 2)
+
     # figure out what were dividing our range by (number of results we should return)
-    divisor = num_results if num_results else (upper_bound_as_int - lower_bound_as_int)
-    stride = (upper_bound_as_int - lower_bound_as_int) // divisor
+    safe_num_results = num_results if num_results else (upper_bound_as_int - lower_bound_as_int)
+    safe_num_results = safe_num_results if safe_num_results <= (upper_bound_as_int - lower_bound_as_int) else (upper_bound_as_int - lower_bound_as_int)
+    stride = (upper_bound_as_int - lower_bound_as_int) // safe_num_results
+    print(f"... gives us a stride of {stride}")
     for next_value in range(upper_bound_as_int, lower_bound_as_int, -stride):
         bin_list = _int_to_bin_list(next_value, n_samples)
         #print(f"Yielding: {bin_list}")
