@@ -9,6 +9,12 @@ we don't know when we started!
 * * feasibility sucks
 * * * need some faster way to handle input-- currently not skipping anything
 * * * even under very tight time windows and heavy sample bias, still really hard to find anything worth while :/
+* * the feasibility quest continues
+* * * orig setting btw 6 / 2.5 / 2.0 / 1
+* * * playing with these numbers makes parts of the solution barf
+* * * so harden that
+* * * * aslkdjasdalkj its an initialization + DOF problem
+* * * * seriously need to rethink if working backwards is even worth dealing with due to this nightmare DOF 
 2. Cleanup code for Github + Readme
 3. Take another stab at CSV-file based serialization / deserialization of sims
 4. Take start state from config file or CLI

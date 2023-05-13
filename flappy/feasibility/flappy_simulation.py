@@ -104,7 +104,9 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
  
         # just going to try and return all the bounds checks
         upper_bound, lower_bound = self._get_input_sequence_bounds()
-        if upper_bound is None or lower_bound is None:
+        print("".join("...." * depth) + f"Upper bound: {upper_bound.samples}")
+        print("".join("...." * depth) + f"Lower bound: {lower_bound.samples}")
+        if upper_bound is None or lower_bound is None or upper_bound.samples == lower_bound.samples:
             print("".join("...." * depth) + f"could not generate bounds")
             return []
 
@@ -188,6 +190,7 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
             self.t_max, self.step_time, "dsc"
         )
         upper_solutions = self._find_reachability_bound_given_order(upper_input_gen)
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
         # lower bound calc
         lower_input_gen = btn_1_ordered_sequence_generator(
             self.t_max, self.step_time, "asc"
@@ -208,15 +211,14 @@ class FeasibilityFlappySim(HybridSim[BackwardsFlappyModel]):
     
         while not done:
             # get an input sequence if we haven't gotten one yet
-            single_run_start = time.time()
             if not input_sequence:
                 input_sequence = input_generator.send(
                     None
                 )  # explicit about getting the first element from the generator
             self.model.input_sequence = input_sequence #type: ignore models that make it this far have input sequences
-            #print(
-            #    f"Simulating: {''.join([str(sample) for sample in self.model.input_sequence.samples])}" #type: ignore models that make it this far have input sequences
-            #)
+            print(
+                f"Simulating: {''.join([str(sample) for sample in self.model.input_sequence.samples])}" #type: ignore models that make it this far have input sequences
+            )
             solver = HyEQSolver(self.model)
             solution = solver.solve()
             if not solution:

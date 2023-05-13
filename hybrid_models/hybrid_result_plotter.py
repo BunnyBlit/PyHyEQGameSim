@@ -1,10 +1,11 @@
 
 from .hybrid_result import HybridResult
 from .hybrid_point import HybridPoint
+from .ndarray_dataclass import NDArrayBacked
 from input.input_signal import InputSignal
 
 from collections import defaultdict
-from typing import List, Sequence, Any, Callable, Tuple, cast
+from typing import List, Sequence, Any, Callable, Tuple, cast, Optional
 import math
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -21,11 +22,13 @@ class HybridResultPlotter:
     """
     data: Sequence[HybridResult]
     optional_data: Any
+    init_config: Optional[NDArrayBacked]
     _color_map = mpl.colormaps["plasma"] #type: ignore this works actually
     
-    def __init__(self, data_to_plot:Sequence[HybridResult], optional_data:Any=None):
+    def __init__(self, data_to_plot:Sequence[HybridResult], optional_data:Any=None, init_config:Optional[NDArrayBacked]=None):
         self.data = data_to_plot
         self.optional_data = optional_data
+        self.init_config = init_config
 
     def plot_state_over_time(self, state_labels:List[str], chart_label:str):
         """Take the provided data, and plot every single dimension
@@ -137,6 +140,7 @@ class HybridResultPlotter:
             pass
 
         ax.legend(handles_to_graph, labels_to_use)
+        ax = self._plot_init(ax, x_dim_idx, y_dim_idx)
         ax = self._plot_level(ax)
         plt.show()
 
@@ -165,7 +169,8 @@ class HybridResultPlotter:
                 y_data = [float(point.state[y_dim_idx]) for point in slice]
                 ax.plot(x_data, y_data, color=self._color_map.colors[jump_color_map[jump]], label=f"Jump {jump}")
 
-        ax = self._plot_level(ax)
+        ax = self._plot_init(ax, x_dim_idx, y_dim_idx)
+        ax = self._plot_level(ax) 
         ax.legend() 
         plt.show()
 
@@ -297,6 +302,20 @@ class HybridResultPlotter:
                 height = obstacle[1][1] - obstacle[0][1]
 
                 ax.add_patch(Rectangle(obstacle[0], width, height))
+        return ax
+    
+    def _plot_init(self, ax, x_dim_idx:int, y_dim_idx:int):
+        """ Plot an initial configuration point.
+        Args:
+            ax (Axes): matplotlib axes to plot on
+            x_dim_idx (int): dimension in the start state to use for the X axis
+            y_dim_idx (int): dimension in the start state to use for the Y axis
+        Returns:
+            Axes: modified passed in matplotlib axes
+        """
+        if self.init_config:
+            ax.plot(self.init_config[x_dim_idx], self.init_config[y_dim_idx], "o", color="green")
+
         return ax
 
             

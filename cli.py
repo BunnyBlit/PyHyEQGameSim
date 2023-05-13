@@ -95,9 +95,9 @@ def single_backwards_flappy_run(args) -> None:
     result = sim.single_run(samples)
     print("BIG OLD DATA DUMP INC")
     print(result)
-    plotter = HybridResultPlotter([result], sim.model.level)
-    plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Backward Flappy Breakdown")
-    #plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    plotter = HybridResultPlotter([result], sim.model.level, sim.model.start_state)
+    #plotter.plot_state_and_input_over_time(["X Pos", "Y Pos", "Y Vel", "Pressed"], "Backward Flappy Breakdown")
+    plotter.plot_state_over_state(0, 1, "X Pos", "Y Pos", "Flappy Position")
     #plot_state_relation(result, sim.level, 0, 1, "X Pos", "Y Pos", "Flappy Position")
 
 def find_flappy_reachability_bounds(args) -> None:
@@ -142,14 +142,14 @@ def find_feasibility_set(args) -> None:
     random.seed(seed)
 
     sim = FeasibilityFlappySim(max_t, max_j, sample_rate, start_state, seed)
-    results = sim.feasibility_set(sim.model.start_state, goal, stride_points)
-    #results = sim._plot_input_sequence_bounds()
-    plotter = HybridResultPlotter(results, sim.model.level)
-    plotter.plot_state_over_state_unique(0, 1, "X Pos", "Y Pos", "Flappy Position")
+    #results = sim.feasibility_set(sim.model.start_state, goal, stride_points)
+    results = sim._plot_input_sequence_bounds()
+    #plotter = HybridResultPlotter(results, sim.model.level, sim.model.start_state)
+    #plotter.plot_state_over_state_unique(0, 1, "X Pos", "Y Pos", "Flappy Position")
  
     #solution_set = sim._plot_bounds_recursively(sim.model.start_state, goal, stride_points)
-    #plotter = HybridResultPlotter(solution_set, sim.model.level)
-    #plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Feasible Flappy Solutions")
+    plotter = HybridResultPlotter(results[0] + results[1], sim.model.level, sim.model.start_state)
+    plotter.plot_reachability(0, 1, "X Pos", "Y Pos", "Feasible Flappy Solutions")
 
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build out a complex tree of subparsers for handling various
