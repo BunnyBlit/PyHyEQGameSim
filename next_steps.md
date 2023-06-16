@@ -17,5 +17,3 @@ we don't know when we started!
 * * * * seriously need to rethink if working backwards is even worth dealing with due to this nightmare DOF 
 2. Cleanup code for Github + Readme
 3. Take another stab at CSV-file based serialization / deserialization of sims
-4. Take start state from config file or CLI
-5. Take system params from config file or CLI

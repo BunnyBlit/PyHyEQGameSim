@@ -24,5 +24,7 @@ class HybridPoint(Generic[T]):
     state: T
     jumps: int
 
+    def to_simple(self):
+        return (self.time, self.state.to_simple(), self.jumps)
     def __str__(self):
         return f"{self.time:0.4f}\t{self.state}\t{self.jumps}"

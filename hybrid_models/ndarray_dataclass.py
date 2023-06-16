@@ -30,3 +30,6 @@ class NDArrayBacked(Sequence, Generic[T]):
     @abstractmethod
     def from_properties(cls):
         pass
+
+    def to_simple(self) -> tuple:
+        return tuple(value for value in self._data)

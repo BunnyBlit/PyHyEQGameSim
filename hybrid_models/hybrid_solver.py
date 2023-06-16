@@ -1,10 +1,11 @@
 """Core class for solving a hybrid systems equation!
     FIXME: move notes from notebook to here
 """
-from typing import Callable, List, Generic, Sequence
+from typing import Callable, List, Generic, Sequence, Dict, Any, Tuple
 import scipy.integrate as integrate
 from .hybrid_model import HybridModel
 from .hybrid_point import HybridPoint, T
+from input.input_signal import InputSignal
 from copy import deepcopy
 from pprint import pprint
 
@@ -37,6 +38,8 @@ class HyEQSolver(Generic[T]):
     rtol: float
     atol: float
 
+    # TODO: completely define this
+    memory: Dict = {}
     def __init__(
         self,
         model: HybridModel,
@@ -166,15 +169,18 @@ class HyEQSolver(Generic[T]):
                 if ode_sol.status == -1:
                     logger.error(f"Solver Failed! Message: {ode_sol.message}")
                     return self.sol
+                short_term_memory = []
                 for time, state_values in zip(ode_sol.t, ode_sol.y.T):
                     new_state = self.model.state_factory(state_values)
                     new_point = HybridPoint(time, new_state, self.cur_state.jumps)
+                    short_term_memory.append(new_point.to_simple())
                     self.sol.append(new_point)
-
+                
                 # FIXME: there's probably a smart way to do this,
                 #        but the current state may get mutated by jumps
                 #        and this lets us hold onto both sides of the instantaneous change
                 #        (self.sol[-1] is pre change and self.cur_state will become post change)
+                self.memory[(self.cur_state.to_simple(), self.model.input_sequence.to_simple())] = tuple(value for value in short_term_memory)
                 self.cur_state = deepcopy(self.sol[-1])
 
             # check stop signal

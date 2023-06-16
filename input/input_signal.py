@@ -22,6 +22,8 @@ class InputSignal(Iterable):
     label: str = "No Label Provided"
     _idx: int = 0  # so we can be an iterator
 
+    def to_simple(self) -> tuple:
+        return tuple((sample, time) for sample, time in zip(self.samples, self.times))
     def __iter__(self):
         """ Iterator protocol initialization.
         Start at -1 here to make __next__ have some nicer logic.
